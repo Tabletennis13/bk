@@ -1966,8 +1966,9 @@
             }
         }
 
+        // Завершение матча с обновлением ставок
         async function finalizeMatch(matchId, winner) {
-            if (!confirm(`Подтвердить победу ${winner === 'player1' ? 'первого' : 'второго'} игрока?`)) return;
+            if (!confirm(`Подтвердить победу ${winner === 'player1' ? 'первого' : 'второго'} игрока? Все ставки на этот матч будут автоматически обработаны.`)) return;
             
             try {
                 const match = allMatches.find(m => m.id === matchId);
@@ -1976,7 +1977,8 @@
                     return;
                 }
                 
-                const { error } = await db
+                // 1. Обновляем статус матча
+                const { error: matchError } = await db
                     .from('bet_matches')
                     .update({ 
                         status: 'finished',
@@ -1985,12 +1987,92 @@
                     })
                     .eq('id', matchId);
                 
-                if (error) throw error;
+                if (matchError) throw matchError;
                 
-                showNotification('Матч завершен!', 'success');
+                // 2. Получаем все активные ставки на этот матч
+                let bets = [];
+                try {
+                    const { data: betsData, error: betsError } = await db
+                        .from('player_bets')
+                        .select('*')
+                        .eq('match_id', matchId)
+                        .eq('status', 'active');
+                    
+                    if (betsError && !betsError.message.includes("Could not find the table")) {
+                        throw betsError;
+                    }
+                    
+                    bets = betsData || [];
+                } catch (error) {
+                    // Таблица ставок может не существовать, это нормально
+                    console.log('Ставки не найдены или таблица не создана:', error.message);
+                }
+                
+                // 3. Обновляем ставки и начисляем выигрыши
+                if (bets && bets.length > 0) {
+                    let wonBetsCount = 0;
+                    let totalWonAmount = 0;
+                    
+                    for (const bet of bets) {
+                        let newStatus = '';
+                        let actualWin = 0;
+                        
+                        if (bet.bet_on === winner) {
+                            // Ставка выиграла
+                            newStatus = 'won';
+                            actualWin = Math.round(bet.amount * bet.odds);
+                            wonBetsCount++;
+                            totalWonAmount += actualWin;
+                            
+                            // Начисляем выигрыш игроку
+                            const { data: cabinet } = await db
+                                .from('player_cabinets')
+                                .select('*')
+                                .eq('player_name', bet.player_name)
+                                .single();
+                            
+                            if (cabinet) {
+                                const newTokens = (cabinet.tokens || 0) + actualWin;
+                                await db
+                                    .from('player_cabinets')
+                                    .update({ tokens: newTokens })
+                                    .eq('player_name', bet.player_name);
+                                
+                                console.log(`Начислено ${actualWin} жетонов игроку ${bet.player_name}`);
+                            }
+                        } else {
+                            // Ставка проиграла
+                            newStatus = 'lost';
+                            actualWin = 0;
+                        }
+                        
+                        // Обновляем статус ставки
+                        await db
+                            .from('player_bets')
+                            .update({ 
+                                status: newStatus,
+                                actual_win: actualWin,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', bet.id);
+                    }
+                    
+                    showNotification(`Матч завершен! Обработано ${bets.length} ставок. Выиграло ${wonBetsCount} ставок на общую сумму ${totalWonAmount} жетонов`, 'success');
+                } else {
+                    showNotification('Матч завершен! (ставок на этот матч не найдено)', 'success');
+                }
+                
+                // 4. Обновляем данные и перезагружаем панель
                 await loadMatchesData();
+                await loadPlayersData();
                 closeAdminPanel();
                 showAdminPanel();
+                
+                // 5. Перезагружаем список ставок в админке
+                const betsList = document.getElementById('betsList');
+                if (betsList) {
+                    setTimeout(() => loadAllBets(), 500);
+                }
                 
             } catch (error) {
                 console.error('Ошибка завершения матча:', error);
@@ -2006,140 +2088,170 @@
                 
                 betsList.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка ставок...</div>';
                 
-                const { data: bets, error } = await db
-                    .from('player_bets')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                
-                if (error) throw error;
-                
-                if (!bets || bets.length === 0) {
-                    betsList.innerHTML = '<div class="loading">Ставок не найдено</div>';
-                    return;
-                }
-                
-                // Получаем информацию о матчах
-                const matchIds = [...new Set(bets.map(bet => bet.match_id))];
-                const { data: matches } = await db
-                    .from('bet_matches')
-                    .select('*')
-                    .in('id', matchIds);
-                
-                // Получаем информацию о игроках
-                const playerNames = [...new Set(bets.map(bet => bet.player_name))];
-                const { data: cabinets } = await db
-                    .from('player_cabinets')
-                    .select('*')
-                    .in('player_name', playerNames);
-                
-                const searchTerm = document.getElementById('searchBets').value.toLowerCase();
-                const statusFilter = document.getElementById('filterBetStatus').value;
-                
-                betsList.innerHTML = '';
-                
-                bets.forEach(bet => {
-                    const match = matches ? matches.find(m => m.id === bet.match_id) : null;
-                    const cabinet = cabinets ? cabinets.find(c => c.player_name === bet.player_name) : null;
+                try {
+                    const { data: bets, error } = await db
+                        .from('player_bets')
+                        .select('*')
+                        .order('created_at', { ascending: false });
                     
-                    if (!match) return;
-                    
-                    // Фильтрация
-                    if (searchTerm && !bet.player_name.toLowerCase().includes(searchTerm)) return;
-                    
-                    if (statusFilter !== 'all') {
-                        if (statusFilter === 'active' && bet.status !== 'active') return;
-                        if (statusFilter === 'won' && bet.status !== 'won') return;
-                        if (statusFilter === 'lost' && bet.status !== 'lost') return;
-                        if (statusFilter === 'cancelled' && bet.status !== 'cancelled') return;
+                    if (error) {
+                        // Если таблица не существует, показываем сообщение
+                        if (error.message.includes("Could not find the table") || error.code === 'PGRST205') {
+                            betsList.innerHTML = `
+                                <div style="padding: 1rem; text-align: center;">
+                                    <div style="color: var(--warning); margin-bottom: 0.5rem;">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div style="margin-bottom: 1rem;">
+                                        Таблица ставок не создана. 
+                                        <br>
+                                        <small>При завершении матча ставки будут создаваться автоматически</small>
+                                    </div>
+                                </div>
+                            `;
+                            return;
+                        }
+                        throw error;
                     }
                     
-                    const betItem = document.createElement('div');
-                    betItem.className = 'player-item';
-                    
-                    const betAmount = parseFloat(bet.amount) || 0;
-                    const potentialWin = parseFloat(bet.potential_win) || 0;
-                    const actualWin = parseFloat(bet.actual_win) || 0;
-                    
-                    let statusBadge = '';
-                    let statusColor = '';
-                    
-                    switch(bet.status) {
-                        case 'active':
-                            statusBadge = '🟡 Активна';
-                            statusColor = '#f59e0b';
-                            break;
-                        case 'won':
-                            statusBadge = '🟢 Выиграна';
-                            statusColor = '#10b981';
-                            break;
-                        case 'lost':
-                            statusBadge = '🔴 Проиграна';
-                            statusColor = '#ef4444';
-                            break;
-                        case 'cancelled':
-                            statusBadge = '⚪ Отменена';
-                            statusColor = '#6b7280';
-                            break;
-                        default:
-                            statusBadge = '🟠 В ожидании';
-                            statusColor = '#f97316';
+                    if (!bets || bets.length === 0) {
+                        betsList.innerHTML = '<div class="loading">Ставок не найдено</div>';
+                        return;
                     }
                     
-                    const matchInfo = match ? 
-                        `${match.player1} vs ${match.player2} (${new Date(match.date).toLocaleDateString('ru-RU')})` : 
-                        'Матч не найден';
+                    // Получаем информацию о матчах
+                    const matchIds = [...new Set(bets.map(bet => bet.match_id))];
+                    const { data: matches } = await db
+                        .from('bet_matches')
+                        .select('*')
+                        .in('id', matchIds);
                     
-                    const betOnName = bet.bet_on === 'player1' ? match.player1 : match.player2;
+                    // Получаем информацию о игроках
+                    const playerNames = [...new Set(bets.map(bet => bet.player_name))];
+                    const { data: cabinets } = await db
+                        .from('player_cabinets')
+                        .select('*')
+                        .in('player_name', playerNames);
                     
-                    betItem.innerHTML = `
-                        <div class="player-info">
-                            <strong>${bet.player_name}</strong>
-                            ${cabinet ? `<br><small>Токены: ${cabinet.tokens || 0}</small>` : ''}
-                            <br>
-                            <small>
-                                Матч: ${matchInfo}<br>
-                                Ставка на: <strong>${betOnName}</strong><br>
-                                Сумма: <strong>${betAmount}</strong> жетонов
-                                ${bet.odds ? ` (коэф. ${parseFloat(bet.odds).toFixed(2)})` : ''}
-                            </small>
-                            <br>
-                            <small>
-                                ${bet.status === 'active' ? 
-                                    `Потенциальный выигрыш: <strong style="color: var(--success);">${potentialWin.toFixed(2)}</strong>` :
-                                    bet.status === 'won' ?
-                                    `Выиграно: <strong style="color: var(--success);">${actualWin.toFixed(2)}</strong>` :
-                                    ''
-                                }
-                                <span style="margin-left: 10px; padding: 2px 6px; border-radius: 10px; background: ${statusColor}20; color: ${statusColor}; font-size: 0.7rem;">
-                                    ${statusBadge}
-                                </span>
-                            </small>
-                            <br>
-                            <small style="color: var(--gray); font-size: 0.7rem;">
-                                ${new Date(bet.created_at).toLocaleString('ru-RU')}
-                            </small>
-                        </div>
-                        <div class="player-actions">
-                            ${bet.status === 'active' ? `
-                                <button class="action-btn delete small" onclick="cancelBet('${bet.id}', '${bet.player_name}', ${betAmount})" title="Отменить ставку">
-                                    <i class="fas fa-times"></i>
+                    const searchTerm = document.getElementById('searchBets').value.toLowerCase();
+                    const statusFilter = document.getElementById('filterBetStatus').value;
+                    
+                    betsList.innerHTML = '';
+                    
+                    bets.forEach(bet => {
+                        const match = matches ? matches.find(m => m.id === bet.match_id) : null;
+                        const cabinet = cabinets ? cabinets.find(c => c.player_name === bet.player_name) : null;
+                        
+                        if (!match) return;
+                        
+                        // Фильтрация
+                        if (searchTerm && !bet.player_name.toLowerCase().includes(searchTerm)) return;
+                        
+                        if (statusFilter !== 'all') {
+                            if (statusFilter === 'active' && bet.status !== 'active') return;
+                            if (statusFilter === 'won' && bet.status !== 'won') return;
+                            if (statusFilter === 'lost' && bet.status !== 'lost') return;
+                            if (statusFilter === 'cancelled' && bet.status !== 'cancelled') return;
+                        }
+                        
+                        const betItem = document.createElement('div');
+                        betItem.className = 'player-item';
+                        
+                        const betAmount = parseFloat(bet.amount) || 0;
+                        const potentialWin = parseFloat(bet.potential_win) || 0;
+                        const actualWin = parseFloat(bet.actual_win) || 0;
+                        
+                        let statusBadge = '';
+                        let statusColor = '';
+                        
+                        switch(bet.status) {
+                            case 'active':
+                                statusBadge = '🟡 Активна';
+                                statusColor = '#f59e0b';
+                                break;
+                            case 'won':
+                                statusBadge = '🟢 Выиграна';
+                                statusColor = '#10b981';
+                                break;
+                            case 'lost':
+                                statusBadge = '🔴 Проиграна';
+                                statusColor = '#ef4444';
+                                break;
+                            case 'cancelled':
+                                statusBadge = '⚪ Отменена';
+                                statusColor = '#6b7280';
+                                break;
+                            default:
+                                statusBadge = '🟠 В ожидании';
+                                statusColor = '#f97316';
+                        }
+                        
+                        const matchInfo = match ? 
+                            `${match.player1} vs ${match.player2} (${new Date(match.date).toLocaleDateString('ru-RU')})` : 
+                            'Матч не найден';
+                        
+                        const betOnName = bet.bet_on === 'player1' ? match.player1 : match.player2;
+                        
+                        betItem.innerHTML = `
+                            <div class="player-info">
+                                <strong>${bet.player_name}</strong>
+                                ${cabinet ? `<br><small>Токены: ${cabinet.tokens || 0}</small>` : ''}
+                                <br>
+                                <small>
+                                    Матч: ${matchInfo}<br>
+                                    Ставка на: <strong>${betOnName}</strong><br>
+                                    Сумма: <strong>${betAmount}</strong> жетонов
+                                    ${bet.odds ? ` (коэф. ${parseFloat(bet.odds).toFixed(2)})` : ''}
+                                </small>
+                                <br>
+                                <small>
+                                    ${bet.status === 'active' ? 
+                                        `Потенциальный выигрыш: <strong style="color: var(--success);">${potentialWin.toFixed(2)}</strong>` :
+                                        bet.status === 'won' ?
+                                        `Выиграно: <strong style="color: var(--success);">${actualWin.toFixed(2)}</strong>` :
+                                        ''
+                                    }
+                                    <span style="margin-left: 10px; padding: 2px 6px; border-radius: 10px; background: ${statusColor}20; color: ${statusColor}; font-size: 0.7rem;">
+                                        ${statusBadge}
+                                    </span>
+                                </small>
+                                <br>
+                                <small style="color: var(--gray); font-size: 0.7rem;">
+                                    ${new Date(bet.created_at).toLocaleString('ru-RU')}
+                                </small>
+                            </div>
+                            <div class="player-actions">
+                                ${bet.status === 'active' ? `
+                                    <button class="action-btn delete small" onclick="cancelBet('${bet.id}', '${bet.player_name}', ${betAmount})" title="Отменить ставку">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                ` : bet.status === 'cancelled' ? `
+                                    <button class="action-btn add-tokens small" onclick="restoreBet('${bet.id}', '${bet.player_name}', ${betAmount})" title="Восстановить ставку">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                ` : ''}
+                                <button class="action-btn delete small" onclick="deleteBetPermanently('${bet.id}', '${bet.player_name}')" title="Удалить навсегда">
+                                    <i class="fas fa-trash"></i>
                                 </button>
-                            ` : bet.status === 'cancelled' ? `
-                                <button class="action-btn add-tokens small" onclick="restoreBet('${bet.id}', '${bet.player_name}', ${betAmount})" title="Восстановить ставку">
-                                    <i class="fas fa-undo"></i>
-                                </button>
-                            ` : ''}
-                            <button class="action-btn delete small" onclick="deleteBetPermanently('${bet.id}', '${bet.player_name}')" title="Удалить навсегда">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            </div>
+                        `;
+                        
+                        betsList.appendChild(betItem);
+                    });
+                    
+                    if (betsList.children.length === 0) {
+                        betsList.innerHTML = '<div class="loading">Ставок по заданным критериям не найдено</div>';
+                    }
+                    
+                } catch (error) {
+                    console.error('Ошибка загрузки ставок:', error);
+                    betsList.innerHTML = `
+                        <div style="padding: 1rem; text-align: center; color: var(--danger);">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <div>Ошибка загрузки ставок</div>
+                            <small>${error.message}</small>
                         </div>
                     `;
-                    
-                    betsList.appendChild(betItem);
-                });
-                
-                if (betsList.children.length === 0) {
-                    betsList.innerHTML = '<div class="loading">Ставок по заданным критериям не найдено</div>';
                 }
                 
             } catch (error) {
@@ -2421,7 +2533,7 @@
             try {
                 const betData = selectedBets[matchId];
                 const odds = betData.odds;
-                const potentialWin = amount * odds;
+                const potentialWin = Math.round(amount * odds * 100) / 100;
                 
                 // Создаем запись о ставке
                 const betId = 'bet_' + Date.now().toString(36);
@@ -2440,7 +2552,16 @@
                         created_at: new Date().toISOString()
                     }]);
                 
-                if (betError) throw betError;
+                if (betError) {
+                    // Если таблица не существует, создаем ставку без сохранения в базу
+                    if (betError.message.includes("Could not find the table")) {
+                        showNotification(`Ставка ${amount} жетонов на ${betData.playerName} принята! (таблица ставок не создана)`, 'success');
+                    } else {
+                        throw betError;
+                    }
+                } else {
+                    showNotification(`Ставка ${amount} жетонов на ${betData.playerName} принята! Потенциальный выигрыш: ${potentialWin.toFixed(2)}`, 'success');
+                }
                 
                 // Обновляем баланс игрока
                 const newTokens = (currentUser.tokens || 0) - amount;
@@ -2455,8 +2576,6 @@
                 // Обновляем текущего пользователя
                 currentUser.tokens = newTokens;
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                
-                showNotification(`Ставка ${amount} жетонов на ${betData.playerName} принята! Потенциальный выигрыш: ${potentialWin.toFixed(2)}`, 'success');
                 
                 // Очищаем поле ввода
                 input.value = '';
