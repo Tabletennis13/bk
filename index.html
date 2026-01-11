@@ -414,6 +414,16 @@
             background: #eff6ff;
         }
 
+        .odds-btn.selected {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .odds-btn.selected .odds-value {
+            color: white;
+        }
+
         .odds-value {
             display: block;
             font-size: 1.25rem;
@@ -1148,6 +1158,9 @@
         let allPlayers = [];
         let playerCabinets = [];
         let allMatches = [];
+        
+        // Храним выбранные ставки для каждого матча
+        let selectedBets = {};
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
@@ -1408,28 +1421,84 @@
                     </div>
                 </div>
                 <div class="match-odds">
-                    <button class="odds-btn" onclick="prepareBet('${match.id}', 'player1', ${odds.player1}, '${match.player1}')">
+                    <button class="odds-btn" onclick="selectBet('${match.id}', 'player1', ${odds.player1}, '${match.player1}')">
                         П1
                         <span class="odds-value">${odds.player1.toFixed(2)}</span>
                     </button>
-                    <button class="odds-btn" onclick="prepareBet('${match.id}', 'player2', ${odds.player2}, '${match.player2}')">
+                    <button class="odds-btn" onclick="selectBet('${match.id}', 'player2', ${odds.player2}, '${match.player2}')">
                         П2
                         <span class="odds-value">${odds.player2.toFixed(2)}</span>
                     </button>
                 </div>
                 ${match.status === 'live' && currentUser ? `
                 <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
-                    <div style="display: flex; gap: 0.5rem;">
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
                         <input type="number" id="bet-amount-${match.id}" placeholder="Сумма" min="1" max="${Math.floor((currentUser.tokens || 0) * 0.5)}" style="flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem;">
-                        <button onclick="placeBet('${match.id}')" class="bet-btn" style="padding: 0.5rem 1rem;">
-                            <i class="fas fa-coins"></i> Ставка
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button onclick="placeBet('${match.id}')" class="bet-btn" style="flex: 1; padding: 0.5rem;">
+                            <i class="fas fa-coins"></i> Сделать ставку
                         </button>
+                    </div>
+                    <div id="bet-info-${match.id}" style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--gray);">
+                        ${selectedBets[match.id] ? `Выбрано: ${selectedBets[match.id].playerName} (коэф. ${selectedBets[match.id].odds.toFixed(2)})` : 'Выберите игрока'}
                     </div>
                 </div>
                 ` : ''}
             `;
             
+            // Если есть сохраненный выбор для этого матча, выделяем кнопку
+            setTimeout(() => {
+                if (selectedBets[match.id]) {
+                    const oddsBtns = matchCard.querySelectorAll('.odds-btn');
+                    oddsBtns.forEach(btn => {
+                        if (btn.textContent.includes(selectedBets[match.id].betOn === 'player1' ? 'П1' : 'П2')) {
+                            btn.classList.add('selected');
+                        }
+                    });
+                }
+            }, 100);
+            
             return matchCard;
+        }
+
+        // Выбор ставки
+        function selectBet(matchId, betOn, odds, playerName) {
+            const matchCard = document.querySelector(`#bet-amount-${matchId}`)?.closest('.match-card');
+            if (!matchCard) return;
+            
+            // Убираем выделение со всех кнопок
+            const oddsBtns = matchCard.querySelectorAll('.odds-btn');
+            oddsBtns.forEach(btn => btn.classList.remove('selected'));
+            
+            // Выделяем выбранную кнопку
+            const selectedBtn = Array.from(oddsBtns).find(btn => 
+                btn.textContent.includes(betOn === 'player1' ? 'П1' : 'П2')
+            );
+            if (selectedBtn) {
+                selectedBtn.classList.add('selected');
+            }
+            
+            // Сохраняем выбранную ставку
+            selectedBets[matchId] = {
+                betOn: betOn,
+                odds: odds,
+                playerName: playerName
+            };
+            
+            // Обновляем информацию о выборе
+            const betInfo = document.getElementById(`bet-info-${matchId}`);
+            if (betInfo) {
+                betInfo.textContent = `Выбрано: ${playerName} (коэф. ${odds.toFixed(2)})`;
+            }
+            
+            // Обновляем максимальную сумму ставки
+            const input = document.getElementById(`bet-amount-${matchId}`);
+            if (input && currentUser) {
+                const maxBet = Math.floor((currentUser.tokens || 0) * 0.5);
+                input.max = maxBet;
+                input.placeholder = `Сумма (макс: ${maxBet})`;
+            }
         }
 
         // Расчет коэффициентов
@@ -1695,10 +1764,38 @@
                                 <i class="fas fa-plus"></i> Добавить жетоны
                             </button>
                         </div>
+                        
+                        <!-- Список всех ставок -->
+                        <div class="admin-section">
+                            <h3><i class="fas fa-list-check"></i> Все ставки</h3>
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                                    <input type="text" id="searchBets" placeholder="Поиск по игроку..." style="flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem;">
+                                    <select id="filterBetStatus" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem;">
+                                        <option value="all">Все статусы</option>
+                                        <option value="active">Активные</option>
+                                        <option value="won">Выигранные</option>
+                                        <option value="lost">Проигранные</option>
+                                        <option value="cancelled">Отмененные</option>
+                                    </select>
+                                    <button onclick="loadAllBets()" class="action-btn add-tokens">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="betsList" class="player-list" style="max-height: 400px; overflow-y: auto;">
+                                <div class="loading">
+                                    <i class="fas fa-spinner fa-spin"></i> Загрузка ставок...
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 `;
                 
                 document.body.appendChild(adminPanel);
+                
+                // Загружаем ставки при открытии админки
+                setTimeout(() => loadAllBets(), 100);
                 
             } catch (error) {
                 console.error('Ошибка загрузки панели администратора:', error);
@@ -1901,6 +1998,285 @@
             }
         }
 
+        // Загрузка всех ставок
+        async function loadAllBets() {
+            try {
+                const betsList = document.getElementById('betsList');
+                if (!betsList) return;
+                
+                betsList.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка ставок...</div>';
+                
+                const { data: bets, error } = await db
+                    .from('player_bets')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                if (!bets || bets.length === 0) {
+                    betsList.innerHTML = '<div class="loading">Ставок не найдено</div>';
+                    return;
+                }
+                
+                // Получаем информацию о матчах
+                const matchIds = [...new Set(bets.map(bet => bet.match_id))];
+                const { data: matches } = await db
+                    .from('bet_matches')
+                    .select('*')
+                    .in('id', matchIds);
+                
+                // Получаем информацию о игроках
+                const playerNames = [...new Set(bets.map(bet => bet.player_name))];
+                const { data: cabinets } = await db
+                    .from('player_cabinets')
+                    .select('*')
+                    .in('player_name', playerNames);
+                
+                const searchTerm = document.getElementById('searchBets').value.toLowerCase();
+                const statusFilter = document.getElementById('filterBetStatus').value;
+                
+                betsList.innerHTML = '';
+                
+                bets.forEach(bet => {
+                    const match = matches ? matches.find(m => m.id === bet.match_id) : null;
+                    const cabinet = cabinets ? cabinets.find(c => c.player_name === bet.player_name) : null;
+                    
+                    if (!match) return;
+                    
+                    // Фильтрация
+                    if (searchTerm && !bet.player_name.toLowerCase().includes(searchTerm)) return;
+                    
+                    if (statusFilter !== 'all') {
+                        if (statusFilter === 'active' && bet.status !== 'active') return;
+                        if (statusFilter === 'won' && bet.status !== 'won') return;
+                        if (statusFilter === 'lost' && bet.status !== 'lost') return;
+                        if (statusFilter === 'cancelled' && bet.status !== 'cancelled') return;
+                    }
+                    
+                    const betItem = document.createElement('div');
+                    betItem.className = 'player-item';
+                    
+                    const betAmount = parseFloat(bet.amount) || 0;
+                    const potentialWin = parseFloat(bet.potential_win) || 0;
+                    const actualWin = parseFloat(bet.actual_win) || 0;
+                    
+                    let statusBadge = '';
+                    let statusColor = '';
+                    
+                    switch(bet.status) {
+                        case 'active':
+                            statusBadge = '🟡 Активна';
+                            statusColor = '#f59e0b';
+                            break;
+                        case 'won':
+                            statusBadge = '🟢 Выиграна';
+                            statusColor = '#10b981';
+                            break;
+                        case 'lost':
+                            statusBadge = '🔴 Проиграна';
+                            statusColor = '#ef4444';
+                            break;
+                        case 'cancelled':
+                            statusBadge = '⚪ Отменена';
+                            statusColor = '#6b7280';
+                            break;
+                        default:
+                            statusBadge = '🟠 В ожидании';
+                            statusColor = '#f97316';
+                    }
+                    
+                    const matchInfo = match ? 
+                        `${match.player1} vs ${match.player2} (${new Date(match.date).toLocaleDateString('ru-RU')})` : 
+                        'Матч не найден';
+                    
+                    const betOnName = bet.bet_on === 'player1' ? match.player1 : match.player2;
+                    
+                    betItem.innerHTML = `
+                        <div class="player-info">
+                            <strong>${bet.player_name}</strong>
+                            ${cabinet ? `<br><small>Токены: ${cabinet.tokens || 0}</small>` : ''}
+                            <br>
+                            <small>
+                                Матч: ${matchInfo}<br>
+                                Ставка на: <strong>${betOnName}</strong><br>
+                                Сумма: <strong>${betAmount}</strong> жетонов
+                                ${bet.odds ? ` (коэф. ${parseFloat(bet.odds).toFixed(2)})` : ''}
+                            </small>
+                            <br>
+                            <small>
+                                ${bet.status === 'active' ? 
+                                    `Потенциальный выигрыш: <strong style="color: var(--success);">${potentialWin.toFixed(2)}</strong>` :
+                                    bet.status === 'won' ?
+                                    `Выиграно: <strong style="color: var(--success);">${actualWin.toFixed(2)}</strong>` :
+                                    ''
+                                }
+                                <span style="margin-left: 10px; padding: 2px 6px; border-radius: 10px; background: ${statusColor}20; color: ${statusColor}; font-size: 0.7rem;">
+                                    ${statusBadge}
+                                </span>
+                            </small>
+                            <br>
+                            <small style="color: var(--gray); font-size: 0.7rem;">
+                                ${new Date(bet.created_at).toLocaleString('ru-RU')}
+                            </small>
+                        </div>
+                        <div class="player-actions">
+                            ${bet.status === 'active' ? `
+                                <button class="action-btn delete small" onclick="cancelBet('${bet.id}', '${bet.player_name}', ${betAmount})" title="Отменить ставку">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            ` : bet.status === 'cancelled' ? `
+                                <button class="action-btn add-tokens small" onclick="restoreBet('${bet.id}', '${bet.player_name}', ${betAmount})" title="Восстановить ставку">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            ` : ''}
+                            <button class="action-btn delete small" onclick="deleteBetPermanently('${bet.id}', '${bet.player_name}')" title="Удалить навсегда">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    betsList.appendChild(betItem);
+                });
+                
+                if (betsList.children.length === 0) {
+                    betsList.innerHTML = '<div class="loading">Ставок по заданным критериям не найдено</div>';
+                }
+                
+            } catch (error) {
+                console.error('Ошибка загрузки ставок:', error);
+                const betsList = document.getElementById('betsList');
+                if (betsList) {
+                    betsList.innerHTML = '<div class="error-message">Ошибка загрузки ставок: ' + error.message + '</div>';
+                }
+            }
+        }
+
+        // Отмена ставки
+        async function cancelBet(betId, playerName, betAmount) {
+            if (!confirm(`Отменить ставку игрока ${playerName} на сумму ${betAmount} жетонов? Жетоны будут возвращены игроку.`)) {
+                return;
+            }
+            
+            try {
+                // Возвращаем жетоны игроку
+                const { data: cabinet } = await db
+                    .from('player_cabinets')
+                    .select('*')
+                    .eq('player_name', playerName)
+                    .single();
+                
+                if (cabinet) {
+                    const newTokens = (cabinet.tokens || 0) + betAmount;
+                    
+                    await db
+                        .from('player_cabinets')
+                        .update({ tokens: newTokens })
+                        .eq('player_name', playerName);
+                }
+                
+                // Обновляем статус ставки
+                await db
+                    .from('player_bets')
+                    .update({ 
+                        status: 'cancelled',
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', betId);
+                
+                showNotification(`Ставка отменена. ${betAmount} жетонов возвращены игроку ${playerName}`, 'success');
+                
+                // Перезагружаем список ставок
+                await loadAllBets();
+                
+                // Обновляем данные игроков
+                await loadPlayersData();
+                
+            } catch (error) {
+                console.error('Ошибка отмены ставки:', error);
+                showNotification('Ошибка отмены ставки: ' + error.message, 'error');
+            }
+        }
+
+        // Восстановление ставки
+        async function restoreBet(betId, playerName, betAmount) {
+            if (!confirm(`Восстановить ставку игрока ${playerName} на сумму ${betAmount} жетонов? Жетоны будут списаны с баланса игрока.`)) {
+                return;
+            }
+            
+            try {
+                // Проверяем баланс игрока
+                const { data: cabinet } = await db
+                    .from('player_cabinets')
+                    .select('*')
+                    .eq('player_name', playerName)
+                    .single();
+                
+                if (!cabinet) {
+                    showNotification('Кабинет игрока не найден', 'error');
+                    return;
+                }
+                
+                if ((cabinet.tokens || 0) < betAmount) {
+                    showNotification(`У игрока недостаточно жетонов. Требуется: ${betAmount}, доступно: ${cabinet.tokens || 0}`, 'error');
+                    return;
+                }
+                
+                // Списываем жетоны
+                const newTokens = (cabinet.tokens || 0) - betAmount;
+                
+                await db
+                    .from('player_cabinets')
+                    .update({ tokens: newTokens })
+                    .eq('player_name', playerName);
+                
+                // Обновляем статус ставки
+                await db
+                    .from('player_bets')
+                    .update({ 
+                        status: 'active',
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', betId);
+                
+                showNotification(`Ставка восстановлена. ${betAmount} жетонов списаны с баланса игрока ${playerName}`, 'success');
+                
+                // Перезагружаем список ставок
+                await loadAllBets();
+                
+                // Обновляем данные игроков
+                await loadPlayersData();
+                
+            } catch (error) {
+                console.error('Ошибка восстановления ставки:', error);
+                showNotification('Ошибка восстановления ставки: ' + error.message, 'error');
+            }
+        }
+
+        // Удаление ставки навсегда
+        async function deleteBetPermanently(betId, playerName) {
+            if (!confirm(`Удалить ставку игрока ${playerName} навсегда? Это действие нельзя отменить.`)) {
+                return;
+            }
+            
+            try {
+                const { error } = await db
+                    .from('player_bets')
+                    .delete()
+                    .eq('id', betId);
+                
+                if (error) throw error;
+                
+                showNotification('Ставка удалена навсегда', 'success');
+                
+                // Перезагружаем список ставок
+                await loadAllBets();
+                
+            } catch (error) {
+                console.error('Ошибка удаления ставки:', error);
+                showNotification('Ошибка удаления ставки: ' + error.message, 'error');
+            }
+        }
+
         // Функции модальных окон
         function openModal(modalId) {
             const modal = document.getElementById(modalId);
@@ -2003,24 +2379,6 @@
             loadLiveMatches();
         }
 
-        // Подготовка ставки
-        function prepareBet(matchId, betOn, odds, playerName) {
-            if (!currentUser) {
-                showNotification('Войдите, чтобы сделать ставку', 'error');
-                openModal('loginModal');
-                return;
-            }
-            
-            const match = allMatches.find(m => m.id === matchId);
-            if (!match || match.status !== 'live') {
-                showNotification('Матч не активен для ставок', 'error');
-                return;
-            }
-            
-            const maxBet = Math.floor((currentUser.tokens || 0) * 0.5);
-            showNotification(`Максимальная ставка: ${maxBet} жетонов на ${playerName} (коэф. ${odds.toFixed(2)})`, 'info');
-        }
-
         // Размещение ставки
         async function placeBet(matchId) {
             if (!currentUser) {
@@ -2031,6 +2389,11 @@
             const match = allMatches.find(m => m.id === matchId);
             if (!match || match.status !== 'live') {
                 showNotification('Матч не активен для ставок', 'error');
+                return;
+            }
+            
+            if (!selectedBets[matchId]) {
+                showNotification('Сначала выберите игрока для ставки', 'error');
                 return;
             }
             
@@ -2055,8 +2418,75 @@
                 return;
             }
             
-            // Здесь будет логика размещения ставки
-            showNotification(`Ставка ${amount} жетонов принята!`, 'success');
+            try {
+                const betData = selectedBets[matchId];
+                const odds = betData.odds;
+                const potentialWin = amount * odds;
+                
+                // Создаем запись о ставке
+                const betId = 'bet_' + Date.now().toString(36);
+                
+                const { error: betError } = await db
+                    .from('player_bets')
+                    .insert([{
+                        id: betId,
+                        match_id: matchId,
+                        player_name: currentUser.player_name,
+                        bet_on: betData.betOn,
+                        amount: amount,
+                        odds: odds,
+                        potential_win: potentialWin,
+                        status: 'active',
+                        created_at: new Date().toISOString()
+                    }]);
+                
+                if (betError) throw betError;
+                
+                // Обновляем баланс игрока
+                const newTokens = (currentUser.tokens || 0) - amount;
+                
+                const { error: updateError } = await db
+                    .from('player_cabinets')
+                    .update({ tokens: newTokens })
+                    .eq('id', currentUser.id);
+                
+                if (updateError) throw updateError;
+                
+                // Обновляем текущего пользователя
+                currentUser.tokens = newTokens;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                showNotification(`Ставка ${amount} жетонов на ${betData.playerName} принята! Потенциальный выигрыш: ${potentialWin.toFixed(2)}`, 'success');
+                
+                // Очищаем поле ввода
+                input.value = '';
+                
+                // Сбрасываем выбор
+                delete selectedBets[matchId];
+                
+                // Обновляем информацию о выборе
+                const betInfo = document.getElementById(`bet-info-${matchId}`);
+                if (betInfo) {
+                    betInfo.textContent = 'Выберите игрока';
+                }
+                
+                // Снимаем выделение с кнопок
+                const matchCard = input.closest('.match-card');
+                if (matchCard) {
+                    const oddsBtns = matchCard.querySelectorAll('.odds-btn');
+                    oddsBtns.forEach(btn => btn.classList.remove('selected'));
+                }
+                
+                // Обновляем статистику
+                await updateStats();
+                
+                // Обновляем данные игроков
+                await loadPlayersData();
+                
+            } catch (error) {
+                console.error('Ошибка размещения ставки:', error);
+                showNotification('Ошибка размещения ставки: ' + error.message, 'error');
+            }
         }
 
         // Уведомления
