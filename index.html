@@ -166,41 +166,6 @@
             margin-bottom: 2rem;
         }
 
-        .hero-stats {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin: 2rem 0;
-            flex-wrap: wrap;
-        }
-
-        .stat {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: rgba(255,255,255,0.1);
-            border-radius: 1rem;
-            min-width: 150px;
-        }
-
-        .stat i {
-            font-size: 2rem;
-            opacity: 0.8;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            display: block;
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            opacity: 0.8;
-        }
-
         .hero-buttons {
             display: flex;
             gap: 1rem;
@@ -208,7 +173,7 @@
             flex-wrap: wrap;
         }
 
-        .btn-primary, .btn-secondary {
+        .btn-primary {
             padding: 0.8rem 1.5rem;
             border-radius: 0.5rem;
             text-decoration: none;
@@ -217,9 +182,6 @@
             align-items: center;
             gap: 0.5rem;
             transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .btn-primary {
             background: white;
             color: var(--primary);
         }
@@ -227,17 +189,6 @@
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: white;
-            border: 2px solid white;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateY(-2px);
         }
 
         /* Правила */
@@ -929,23 +880,6 @@
                 font-size: 1.75rem;
             }
             
-            .hero-stats {
-                gap: 1rem;
-            }
-            
-            .stat {
-                min-width: 120px;
-                padding: 0.75rem;
-            }
-            
-            .stat i {
-                font-size: 1.5rem;
-            }
-            
-            .stat-number {
-                font-size: 1.5rem;
-            }
-            
             .section-header {
                 flex-direction: column;
                 align-items: flex-start;
@@ -988,17 +922,12 @@
                 font-size: 1rem;
             }
             
-            .stat {
-                min-width: 100%;
-                justify-content: center;
-            }
-            
             .hero-buttons {
                 flex-direction: column;
                 align-items: stretch;
             }
             
-            .btn-primary, .btn-secondary {
+            .btn-primary {
                 width: 100%;
                 justify-content: center;
             }
@@ -1062,36 +991,9 @@
             <h1>Лига ставок на настольный теннис</h1>
             <p class="hero-subtitle">Соревнуйся, делай ставки, побеждай! Виртуальные жетоны за реальные достижения</p>
             
-            <div class="hero-stats">
-                <div class="stat">
-                    <i class="fas fa-users"></i>
-                    <div>
-                        <span class="stat-number" id="total-players">0</span>
-                        <span class="stat-label">Игроков в лиге</span>
-                    </div>
-                </div>
-                <div class="stat">
-                    <i class="fas fa-trophy"></i>
-                    <div>
-                        <span class="stat-number" id="live-matches">0</span>
-                        <span class="stat-label">Матчей LIVE</span>
-                    </div>
-                </div>
-                <div class="stat">
-                    <i class="fas fa-coins"></i>
-                    <div>
-                        <span class="stat-number" id="total-bets">0</span>
-                        <span class="stat-label">Жетонов в игре</span>
-                    </div>
-                </div>
-            </div>
-            
             <div class="hero-buttons">
                 <a href="#matches" class="btn-primary">
                     <i class="fas fa-play"></i> Начать делать ставки
-                </a>
-                <a href="#rules" class="btn-secondary">
-                    <i class="fas fa-info-circle"></i> Как это работает?
                 </a>
             </div>
         </div>
@@ -1291,6 +1193,8 @@
         let allMatches = [];
         let playerPurchases = [];
         let shopItems = [];
+        let isLoadingData = false;
+        let dataLoadPromise = null;
         
         // Храним выбранные ставки для каждого матча
         let selectedBets = {};
@@ -1301,7 +1205,9 @@
             db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
             setupEventListeners();
-            loadData();
+            
+            // Загружаем данные с гарантией загрузки игроков перед матчами
+            dataLoadPromise = loadData();
             
             // Проверяем сохраненного пользователя
             const savedUser = localStorage.getItem('currentUser');
@@ -1418,41 +1324,77 @@
             });
         }
 
-        // Загрузка данных
+        // Загрузка данных с правильной последовательностью
         async function loadData() {
+            if (isLoadingData) {
+                console.log('Данные уже загружаются, ждем...');
+                return dataLoadPromise;
+            }
+            
+            isLoadingData = true;
+            console.log('Начинаем загрузку данных...');
+            
             try {
-                console.log('Загрузка данных...');
+                // 1. Сначала загружаем игроков (важно для расчета коэффициентов)
+                await loadPlayersData();
+                console.log('Игроки загружены:', allPlayers.length);
+                
+                // 2. Затем загружаем матчи
+                await loadMatchesData();
+                console.log('Матчи загружены:', allMatches.length);
+                
+                // 3. Загружаем остальные данные параллельно
                 await Promise.all([
-                    loadPlayersData(),
-                    loadMatchesData(),
                     loadPurchasesData(),
-                    updateStats(),
                     loadLeaderboard(),
                     loadShopItems()
                 ]);
-                console.log('Данные успешно загружены');
+                
+                console.log('Все данные успешно загружены');
+                isLoadingData = false;
+                return true;
             } catch (error) {
                 console.error('Ошибка загрузки данных:', error);
                 showNotification('Ошибка загрузки данных: ' + error.message, 'error');
+                isLoadingData = false;
+                return false;
             }
         }
 
         // Загрузка игроков
         async function loadPlayersData() {
             try {
+                console.log('Загрузка данных игроков...');
                 const [playersResponse, cabinetsResponse] = await Promise.all([
                     db.from('players').select('*').order('rating', { ascending: false }),
                     db.from('player_cabinets').select('*')
                 ]);
                 
+                if (playersResponse.error) throw playersResponse.error;
+                if (cabinetsResponse.error) throw cabinetsResponse.error;
+                
                 allPlayers = playersResponse.data || [];
                 playerCabinets = cabinetsResponse.data || [];
                 
                 console.log(`Загружено игроков: ${allPlayers.length}, кабинетов: ${playerCabinets.length}`);
+                
+                // Обновляем данные текущего пользователя, если он вошел
+                if (currentUser) {
+                    const updatedCabinet = playerCabinets.find(pc => pc.id === currentUser.id);
+                    if (updatedCabinet) {
+                        currentUser = updatedCabinet;
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        updateNavForUser();
+                    }
+                }
+                
+                return true;
             } catch (error) {
                 console.error('Ошибка загрузки игроков:', error);
                 allPlayers = [];
                 playerCabinets = [];
+                showNotification('Ошибка загрузки данных игроков', 'error');
+                return false;
             }
         }
 
@@ -1465,8 +1407,7 @@
                     .order('created_at', { ascending: false });
                 
                 if (error) {
-                    // Если таблица не существует, создадим ее позже
-                    console.log('Таблица покупок не найдена, будет создана при первой покупке');
+                    console.log('Таблица покупок не найдена:', error.message);
                     playerPurchases = [];
                 } else {
                     playerPurchases = data || [];
@@ -1569,6 +1510,7 @@
         // Загрузка матчей
         async function loadMatchesData() {
             try {
+                console.log('Загрузка данных матчей...');
                 const { data, error } = await db
                     .from('bet_matches')
                     .select('*')
@@ -1577,28 +1519,19 @@
                 
                 if (error) throw error;
                 allMatches = data || [];
+                console.log(`Загружено матчей: ${allMatches.length}`);
+                
+                // Загружаем матчи только после того, как игроки загружены
                 loadLiveMatches();
+                return true;
             } catch (error) {
                 console.error('Ошибка загрузки матчей:', error);
                 allMatches = [];
-            }
-        }
-
-        // Обновление статистики
-        async function updateStats() {
-            try {
-                // Игроки
-                document.getElementById('total-players').textContent = allPlayers.length;
-                
-                // LIVE матчи
-                const liveMatches = allMatches.filter(m => m.status === 'live');
-                document.getElementById('live-matches').textContent = liveMatches.length;
-                
-                // Жетоны
-                const totalTokens = playerCabinets.reduce((sum, pc) => sum + (pc.tokens || 0), 0);
-                document.getElementById('total-bets').textContent = totalTokens;
-            } catch (error) {
-                console.error('Ошибка обновления статистики:', error);
+                const grid = document.getElementById('live-matches-grid');
+                if (grid) {
+                    grid.innerHTML = '<div class="error-message">Ошибка загрузки матчей</div>';
+                }
+                return false;
             }
         }
 
@@ -1606,6 +1539,12 @@
         function loadLiveMatches() {
             const grid = document.getElementById('live-matches-grid');
             if (!grid) return;
+            
+            // Показываем загрузку
+            if (allPlayers.length === 0) {
+                grid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка данных игроков...</div>';
+                return;
+            }
             
             const liveMatches = allMatches.filter(m => m.status === 'live' || m.status === 'pending');
             
@@ -1615,99 +1554,111 @@
             }
             
             grid.innerHTML = '';
+            
+            // Создаем карточки матчей с правильными данными
             liveMatches.forEach(match => {
                 const matchCard = createMatchCard(match);
-                grid.appendChild(matchCard);
+                if (matchCard) {
+                    grid.appendChild(matchCard);
+                }
             });
         }
 
         // Создание карточки матча
         function createMatchCard(match) {
-            const matchCard = document.createElement('div');
-            matchCard.className = 'match-card';
-            
-            const player1 = allPlayers.find(p => p.name === match.player1);
-            const player2 = allPlayers.find(p => p.name === match.player2);
-            
-            const player1Rating = player1 ? parseInt(player1.rating) : 1000;
-            const player2Rating = player2 ? parseInt(player2.rating) : 1000;
-            
-            const odds = calculateOdds(player1Rating, player2Rating);
-            
-            matchCard.innerHTML = `
-                <div class="match-header">
-                    <div>
-                        <small>${new Date(match.date).toLocaleDateString('ru-RU')}</small>
-                    </div>
-                    <span class="match-status ${match.status === 'live' ? 'status-live' : ''}">
-                        ${match.status === 'live' ? 'LIVE' : 'Скоро'}
-                    </span>
-                </div>
-                <div class="match-players">
-                    <div class="player">
-                        ${player1 && player1.avatar ? 
-                            `<img src="${player1.avatar}" alt="${match.player1}" class="player-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
-                            ''
-                        }
-                        <div class="player-avatar" style="${player1 && player1.avatar ? 'display: none;' : ''}">
-                            ${match.player1 ? match.player1.charAt(0).toUpperCase() : '?'}
+            try {
+                const matchCard = document.createElement('div');
+                matchCard.className = 'match-card';
+                
+                // Находим игроков с правильными рейтингами
+                const player1 = allPlayers.find(p => p.name === match.player1);
+                const player2 = allPlayers.find(p => p.name === match.player2);
+                
+                // Используем рейтинг из базы данных или из матча как резервный
+                const player1Rating = player1 ? parseInt(player1.rating) : (parseInt(match.player1_rating) || 1000);
+                const player2Rating = player2 ? parseInt(player2.rating) : (parseInt(match.player2_rating) || 1000);
+                
+                // Рассчитываем коэффициенты на основе реальных рейтингов
+                const odds = calculateOdds(player1Rating, player2Rating);
+                
+                matchCard.innerHTML = `
+                    <div class="match-header">
+                        <div>
+                            <small>${new Date(match.date).toLocaleDateString('ru-RU')}</small>
                         </div>
-                        <div class="player-name">${match.player1 || 'Игрок 1'}</div>
-                        <div class="player-rating">${player1Rating}</div>
+                        <span class="match-status ${match.status === 'live' ? 'status-live' : ''}">
+                            ${match.status === 'live' ? 'LIVE' : 'Скоро'}
+                        </span>
                     </div>
-                    <div class="vs">VS</div>
-                    <div class="player">
-                        ${player2 && player2.avatar ? 
-                            `<img src="${player2.avatar}" alt="${match.player2}" class="player-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
-                            ''
-                        }
-                        <div class="player-avatar" style="${player2 && player2.avatar ? 'display: none;' : ''}">
-                            ${match.player2 ? match.player2.charAt(0).toUpperCase() : '?'}
+                    <div class="match-players">
+                        <div class="player">
+                            ${player1 && player1.avatar ? 
+                                `<img src="${player1.avatar}" alt="${match.player1}" class="player-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                                ''
+                            }
+                            <div class="player-avatar" style="${player1 && player1.avatar ? 'display: none;' : ''}">
+                                ${match.player1 ? match.player1.charAt(0).toUpperCase() : '?'}
+                            </div>
+                            <div class="player-name">${match.player1 || 'Игрок 1'}</div>
+                            <div class="player-rating">${player1Rating}</div>
                         </div>
-                        <div class="player-name">${match.player2 || 'Игрок 2'}</div>
-                        <div class="player-rating">${player2Rating}</div>
+                        <div class="vs">VS</div>
+                        <div class="player">
+                            ${player2 && player2.avatar ? 
+                                `<img src="${player2.avatar}" alt="${match.player2}" class="player-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                                ''
+                            }
+                            <div class="player-avatar" style="${player2 && player2.avatar ? 'display: none;' : ''}">
+                                ${match.player2 ? match.player2.charAt(0).toUpperCase() : '?'}
+                            </div>
+                            <div class="player-name">${match.player2 || 'Игрок 2'}</div>
+                            <div class="player-rating">${player2Rating}</div>
+                        </div>
                     </div>
-                </div>
-                <div class="match-odds">
-                    <button class="odds-btn" onclick="selectBet('${match.id}', 'player1', ${odds.player1}, '${match.player1}')">
-                        П1
-                        <span class="odds-value">${odds.player1.toFixed(2)}</span>
-                    </button>
-                    <button class="odds-btn" onclick="selectBet('${match.id}', 'player2', ${odds.player2}, '${match.player2}')">
-                        П2
-                        <span class="odds-value">${odds.player2.toFixed(2)}</span>
-                    </button>
-                </div>
-                ${match.status === 'live' && currentUser ? `
-                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
-                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-                        <input type="number" id="bet-amount-${match.id}" placeholder="Сумма" min="1" max="${Math.floor((currentUser.tokens || 0) * 0.5)}" style="flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem;">
-                    </div>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button onclick="placeBet('${match.id}')" class="bet-btn" style="flex: 1; padding: 0.5rem;">
-                            <i class="fas fa-coins"></i> Сделать ставку
+                    <div class="match-odds">
+                        <button class="odds-btn" onclick="selectBet('${match.id}', 'player1', ${odds.player1}, '${match.player1}')">
+                            П1
+                            <span class="odds-value">${odds.player1.toFixed(2)}</span>
+                        </button>
+                        <button class="odds-btn" onclick="selectBet('${match.id}', 'player2', ${odds.player2}, '${match.player2}')">
+                            П2
+                            <span class="odds-value">${odds.player2.toFixed(2)}</span>
                         </button>
                     </div>
-                    <div id="bet-info-${match.id}" style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--gray);">
-                        ${selectedBets[match.id] ? `Выбрано: ${selectedBets[match.id].playerName} (коэф. ${selectedBets[match.id].odds.toFixed(2)})` : 'Выберите игрока'}
+                    ${match.status === 'live' && currentUser ? `
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <input type="number" id="bet-amount-${match.id}" placeholder="Сумма" min="1" max="${Math.floor((currentUser.tokens || 0) * 0.5)}" style="flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem;">
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button onclick="placeBet('${match.id}')" class="bet-btn" style="flex: 1; padding: 0.5rem;">
+                                <i class="fas fa-coins"></i> Сделать ставку
+                            </button>
+                        </div>
+                        <div id="bet-info-${match.id}" style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--gray);">
+                            ${selectedBets[match.id] ? `Выбрано: ${selectedBets[match.id].playerName} (коэф. ${selectedBets[match.id].odds.toFixed(2)})` : 'Выберите игрока'}
+                        </div>
                     </div>
-                </div>
-                ` : ''}
-            `;
-            
-            // Если есть сохраненный выбор для этого матча, выделяем кнопку
-            setTimeout(() => {
-                if (selectedBets[match.id]) {
-                    const oddsBtns = matchCard.querySelectorAll('.odds-btn');
-                    oddsBtns.forEach(btn => {
-                        if (btn.textContent.includes(selectedBets[match.id].betOn === 'player1' ? 'П1' : 'П2')) {
-                            btn.classList.add('selected');
-                        }
-                    });
-                }
-            }, 100);
-            
-            return matchCard;
+                    ` : ''}
+                `;
+                
+                // Если есть сохраненный выбор для этого матча, выделяем кнопку
+                setTimeout(() => {
+                    if (selectedBets[match.id]) {
+                        const oddsBtns = matchCard.querySelectorAll('.odds-btn');
+                        oddsBtns.forEach(btn => {
+                            if (btn.textContent.includes(selectedBets[match.id].betOn === 'player1' ? 'П1' : 'П2')) {
+                                btn.classList.add('selected');
+                            }
+                        });
+                    }
+                }, 100);
+                
+                return matchCard;
+            } catch (error) {
+                console.error('Ошибка создания карточки матча:', error);
+                return null;
+            }
         }
 
         // Выбор ставки
@@ -1749,23 +1700,38 @@
             }
         }
 
-        // Расчет коэффициентов
+        // Расчет коэффициентов на основе разницы рейтингов
         function calculateOdds(rating1, rating2) {
             const diff = Math.abs(rating1 - rating2);
-            let favoriteOdds = 1.3;
-            let underdogOdds = 3.5;
             
-            if (diff < 100) {
+            // Базовые коэффициенты
+            let favoriteOdds, underdogOdds;
+            
+            if (diff < 50) {
+                // Почти равные игроки
                 favoriteOdds = 1.8;
                 underdogOdds = 1.9;
-            } else if (diff < 200) {
+            } else if (diff < 100) {
+                favoriteOdds = 1.6;
+                underdogOdds = 2.2;
+            } else if (diff < 150) {
                 favoriteOdds = 1.5;
                 underdogOdds = 2.5;
-            } else if (diff < 300) {
+            } else if (diff < 200) {
                 favoriteOdds = 1.4;
+                underdogOdds = 2.8;
+            } else if (diff < 250) {
+                favoriteOdds = 1.35;
                 underdogOdds = 3.0;
+            } else if (diff < 300) {
+                favoriteOdds = 1.3;
+                underdogOdds = 3.3;
+            } else {
+                favoriteOdds = 1.25;
+                underdogOdds = 3.5;
             }
             
+            // Определяем фаворита
             if (rating1 > rating2) {
                 return {
                     player1: favoriteOdds,
@@ -1787,7 +1753,7 @@
             if (!tbody) return;
             
             if (allPlayers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="loading">Нет данных об игроках</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="loading">Загрузка данных игроков...</td></tr>';
                 return;
             }
             
@@ -1845,8 +1811,9 @@
                     showNotification('Вход выполнен успешно!', 'success');
                     closeModal('loginModal');
                     updateNavForUser();
-                    loadLiveMatches();
-                    loadShop(); // Обновляем магазин после входа
+                    
+                    // Перезагружаем данные для обновления интерфейса
+                    await loadData();
                     console.log('Пользователь вошел:', currentUser.player_name);
                 } else {
                     showNotification('Неверный логин или пароль', 'error');
@@ -1975,9 +1942,6 @@
                 if (document.getElementById('playerModal').style.display === 'block') {
                     showPlayerInfo();
                 }
-                
-                // Обновляем статистику
-                await updateStats();
                 
             } catch (error) {
                 console.error('Ошибка покупки:', error);
@@ -3077,6 +3041,8 @@
             showNotification('Вы вышли из системы', 'info');
             closeModal('playerModal');
             updateNavForUser();
+            
+            // Обновляем данные для отображения изменений в интерфейсе
             loadLiveMatches();
             loadShop();
         }
@@ -3186,9 +3152,6 @@
                     const oddsBtns = matchCard.querySelectorAll('.odds-btn');
                     oddsBtns.forEach(btn => btn.classList.remove('selected'));
                 }
-                
-                // Обновляем статистику
-                await updateStats();
                 
                 // Обновляем данные игроков
                 await loadPlayersData();
