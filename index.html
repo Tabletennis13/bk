@@ -279,6 +279,94 @@
             gap: 0.5rem;
         }
 
+        /* Магазин */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem 0 2rem;
+        }
+
+        .shop-item {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .shop-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .shop-item.featured {
+            border: 2px solid var(--primary);
+            position: relative;
+        }
+
+        .shop-item.featured::before {
+            content: '🔥 ПОПУЛЯРНО';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .item-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .item-icon.rating {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            color: white;
+        }
+
+        .item-icon.skip {
+            background: linear-gradient(135deg, #10b981 0%, #065f46 100%);
+            color: white;
+        }
+
+        .item-icon.double {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: white;
+        }
+
+        .item-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--warning);
+            margin: 0.5rem 0;
+        }
+
+        .item-price i {
+            margin-right: 0.25rem;
+        }
+
+        .item-description {
+            color: var(--gray);
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            flex-grow: 1;
+        }
+
         /* Матчи */
         .matches-grid {
             display: grid;
@@ -288,7 +376,7 @@
         }
 
         @media (max-width: 640px) {
-            .matches-grid {
+            .matches-grid, .shop-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -665,6 +753,14 @@
             background: #059669;
         }
 
+        .bet-btn.warning {
+            background: var(--warning);
+        }
+
+        .bet-btn.warning:hover {
+            background: #d97706;
+        }
+
         /* Загрузка и ошибки */
         .loading {
             text-align: center;
@@ -799,6 +895,26 @@
             font-size: 0.75rem;
         }
 
+        /* Покупки игроков в админке */
+        .player-purchases {
+            background: #f8fafc;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .purchase-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .purchase-item:last-child {
+            border-bottom: none;
+        }
+
         /* Мобильная адаптация */
         @media (max-width: 768px) {
             .nav-links {
@@ -836,7 +952,7 @@
                 gap: 1rem;
             }
             
-            .steps-grid {
+            .steps-grid, .shop-grid {
                 grid-template-columns: 1fr;
             }
             
@@ -887,7 +1003,7 @@
                 justify-content: center;
             }
             
-            .match-card {
+            .match-card, .shop-item {
                 padding: 1rem;
             }
             
@@ -1005,6 +1121,21 @@
             <div class="matches-grid" id="live-matches-grid">
                 <div class="loading">
                     <i class="fas fa-spinner fa-spin"></i> Загрузка матчей...
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Магазин -->
+    <section id="shop">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="fas fa-store"></i> Магазин жетонов</h2>
+                <small>Покупайте улучшения и бонусы за жетоны</small>
+            </div>
+            <div class="shop-grid" id="shop-grid">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Загрузка магазина...
                 </div>
             </div>
         </div>
@@ -1158,6 +1289,8 @@
         let allPlayers = [];
         let playerCabinets = [];
         let allMatches = [];
+        let playerPurchases = [];
+        let shopItems = [];
         
         // Храним выбранные ставки для каждого матча
         let selectedBets = {};
@@ -1289,8 +1422,10 @@
                 await Promise.all([
                     loadPlayersData(),
                     loadMatchesData(),
+                    loadPurchasesData(),
                     updateStats(),
-                    loadLeaderboard()
+                    loadLeaderboard(),
+                    loadShopItems()
                 ]);
                 console.log('Данные успешно загружены');
             } catch (error) {
@@ -1316,6 +1451,103 @@
                 allPlayers = [];
                 playerCabinets = [];
             }
+        }
+
+        // Загрузка покупок
+        async function loadPurchasesData() {
+            try {
+                const { data, error } = await db
+                    .from('player_purchases')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    // Если таблица не существует, создадим ее позже
+                    console.log('Таблица покупок не найдена, будет создана при первой покупке');
+                    playerPurchases = [];
+                } else {
+                    playerPurchases = data || [];
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки покупок:', error);
+                playerPurchases = [];
+            }
+        }
+
+        // Загрузка магазина
+        function loadShopItems() {
+            shopItems = [
+                {
+                    id: 'buy_rating_10',
+                    name: 'Купить рейтинг',
+                    description: 'Купить 10 очков рейтинга за 100 жетонов',
+                    price: 100,
+                    type: 'rating',
+                    effect: { rating: 10 },
+                    icon: 'trophy',
+                    iconClass: 'rating'
+                },
+                {
+                    id: 'skip_penalty_removal',
+                    name: 'Снятие штрафа за пропуск',
+                    description: 'Убрать штраф за один пропущенный матч',
+                    price: 100,
+                    type: 'skip_penalty',
+                    effect: { skips: 1 },
+                    icon: 'shield-alt',
+                    iconClass: 'skip'
+                },
+                {
+                    id: 'double_tokens_next_match',
+                    name: 'Дубликатор жетонов',
+                    description: 'На следующий матч ставки приносят 2x жетонов',
+                    price: 50,
+                    type: 'double_tokens',
+                    effect: { multiplier: 2, matches: 1 },
+                    icon: 'coins',
+                    iconClass: 'double',
+                    featured: true
+                }
+            ];
+            
+            loadShop();
+        }
+
+        // Отображение магазина
+        function loadShop() {
+            const grid = document.getElementById('shop-grid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            shopItems.forEach(item => {
+                const shopItem = document.createElement('div');
+                shopItem.className = `shop-item ${item.featured ? 'featured' : ''}`;
+                
+                shopItem.innerHTML = `
+                    <div class="item-icon ${item.iconClass}">
+                        <i class="fas fa-${item.icon}"></i>
+                    </div>
+                    <h3 style="margin-bottom: 0.5rem;">${item.name}</h3>
+                    <div class="item-price">
+                        <i class="fas fa-coins"></i> ${item.price}
+                    </div>
+                    <div class="item-description">
+                        ${item.description}
+                    </div>
+                    ${currentUser ? `
+                        <button onclick="buyItem('${item.id}')" class="bet-btn ${item.featured ? 'warning' : 'success'}" style="width: 100%;">
+                            <i class="fas fa-shopping-cart"></i> Купить
+                        </button>
+                    ` : `
+                        <button onclick="showNotification('Войдите, чтобы покупать товары', 'error')" class="bet-btn" style="width: 100%;" disabled>
+                            <i class="fas fa-lock"></i> Требуется вход
+                        </button>
+                    `}
+                `;
+                
+                grid.appendChild(shopItem);
+            });
         }
 
         // Загрузка матчей
@@ -1598,12 +1830,109 @@
                     closeModal('loginModal');
                     updateNavForUser();
                     loadLiveMatches();
+                    loadShop();
                 } else {
                     showNotification('Неверный логин или пароль', 'error');
                 }
             } catch (error) {
                 console.error('Ошибка входа:', error);
                 showNotification('Ошибка входа: ' + error.message, 'error');
+            }
+        }
+
+        // Покупка товара
+        async function buyItem(itemId) {
+            if (!currentUser) {
+                showNotification('Войдите, чтобы покупать товары', 'error');
+                return;
+            }
+            
+            const item = shopItems.find(i => i.id === itemId);
+            if (!item) {
+                showNotification('Товар не найден', 'error');
+                return;
+            }
+            
+            if ((currentUser.tokens || 0) < item.price) {
+                showNotification(`Недостаточно жетонов. Нужно: ${item.price}, у вас: ${currentUser.tokens || 0}`, 'error');
+                return;
+            }
+            
+            try {
+                // Списываем жетоны
+                const newTokens = (currentUser.tokens || 0) - item.price;
+                
+                const { error: updateError } = await db
+                    .from('player_cabinets')
+                    .update({ tokens: newTokens })
+                    .eq('id', currentUser.id);
+                
+                if (updateError) throw updateError;
+                
+                // Обновляем данные игрока в зависимости от типа покупки
+                if (item.type === 'rating') {
+                    const player = allPlayers.find(p => p.name === currentUser.player_name);
+                    if (player) {
+                        const newRating = parseInt(player.rating) + item.effect.rating;
+                        await db
+                            .from('players')
+                            .update({ rating: newRating })
+                            .eq('name', currentUser.player_name);
+                    }
+                }
+                
+                // Создаем запись о покупке
+                const purchaseId = 'purchase_' + Date.now().toString(36);
+                
+                try {
+                    const { error: purchaseError } = await db
+                        .from('player_purchases')
+                        .insert([{
+                            id: purchaseId,
+                            player_name: currentUser.player_name,
+                            item_id: itemId,
+                            item_name: item.name,
+                            price: item.price,
+                            type: item.type,
+                            effect: item.effect,
+                            created_at: new Date().toISOString()
+                        }]);
+                    
+                    if (purchaseError) {
+                        // Если таблица не существует, создаем ее
+                        if (purchaseError.message.includes("Could not find the table")) {
+                            // Пропускаем, покупка все равно зафиксирована в обновлении баланса
+                            console.log('Таблица покупок не существует, создадим позже');
+                        } else {
+                            throw purchaseError;
+                        }
+                    }
+                } catch (error) {
+                    console.log('Ошибка записи покупки:', error.message);
+                    // Продолжаем, так как основная операция (списание жетонов) выполнена
+                }
+                
+                // Обновляем данные пользователя
+                currentUser.tokens = newTokens;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Перезагружаем данные
+                await loadPlayersData();
+                await loadPurchasesData();
+                
+                showNotification(`Вы успешно купили "${item.name}" за ${item.price} жетонов!`, 'success');
+                
+                // Обновляем магазин для отображения измененного баланса
+                loadShop();
+                
+                // Обновляем личный кабинет если он открыт
+                if (document.getElementById('playerModal').style.display === 'block') {
+                    showPlayerInfo();
+                }
+                
+            } catch (error) {
+                console.error('Ошибка покупки:', error);
+                showNotification('Ошибка покупки: ' + error.message, 'error');
             }
         }
 
@@ -1628,6 +1957,7 @@
                 // Загружаем актуальные данные
                 await loadPlayersData();
                 await loadMatchesData();
+                await loadPurchasesData();
                 
                 const adminPanel = document.createElement('div');
                 adminPanel.className = 'admin-panel';
@@ -1649,6 +1979,7 @@
                             <div class="player-list">
                                 ${allPlayers.map(player => {
                                     const cabinet = playerCabinets.find(pc => pc.player_name === player.name);
+                                    const playerPurchasesList = playerPurchases.filter(p => p.player_name === player.name);
                                     const winRate = player.matches > 0 ? Math.round((player.wins / player.matches) * 100) : 0;
                                     return `
                                     <div class="player-item">
@@ -1660,6 +1991,18 @@
                                                 Победы: ${player.wins} (${winRate}%)<br>
                                                 ${cabinet ? `Жетоны: ${cabinet.tokens || 0}` : '<span style="color: orange;">Кабинет не создан</span>'}
                                             </small>
+                                            ${playerPurchasesList.length > 0 ? `
+                                                <div class="player-purchases">
+                                                    <strong>Покупки (${playerPurchasesList.length}):</strong>
+                                                    ${playerPurchasesList.slice(0, 2).map(purchase => `
+                                                        <div class="purchase-item">
+                                                            <span>${purchase.item_name}</span>
+                                                            <span>-${purchase.price} жетонов</span>
+                                                        </div>
+                                                    `).join('')}
+                                                    ${playerPurchasesList.length > 2 ? `<small>... и еще ${playerPurchasesList.length - 2}</small>` : ''}
+                                                </div>
+                                            ` : ''}
                                         </div>
                                         <div class="player-actions">
                                             ${cabinet ? `
@@ -1671,6 +2014,9 @@
                                                     <i class="fas fa-user-plus"></i>
                                                 </button>
                                             `}
+                                            <button class="action-btn add-tokens" onclick="showPlayerPurchases('${player.name}')" title="История покупок">
+                                                <i class="fas fa-history"></i>
+                                            </button>
                                         </div>
                                     </div>
                                     `;
@@ -1765,6 +2111,30 @@
                             </button>
                         </div>
                         
+                        <!-- Список всех покупок -->
+                        <div class="admin-section">
+                            <h3><i class="fas fa-shopping-cart"></i> Все покупки (${playerPurchases.length})</h3>
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                                    <input type="text" id="searchPurchases" placeholder="Поиск по игроку..." style="flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem;">
+                                    <select id="filterPurchaseType" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem;">
+                                        <option value="all">Все типы</option>
+                                        <option value="rating">Рейтинг</option>
+                                        <option value="skip_penalty">Пропуск</option>
+                                        <option value="double_tokens">Дубликатор</option>
+                                    </select>
+                                    <button onclick="loadAllPurchases()" class="action-btn add-tokens">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="purchasesList" class="player-list" style="max-height: 400px; overflow-y: auto;">
+                                <div class="loading">
+                                    <i class="fas fa-spinner fa-spin"></i> Загрузка покупок...
+                                </div>
+                            </div>
+                        </div>
+                        
                         <!-- Список всех ставок -->
                         <div class="admin-section">
                             <h3><i class="fas fa-list-check"></i> Все ставки</h3>
@@ -1794,12 +2164,127 @@
                 
                 document.body.appendChild(adminPanel);
                 
-                // Загружаем ставки при открытии админки
-                setTimeout(() => loadAllBets(), 100);
+                // Загружаем данные при открытии админки
+                setTimeout(() => {
+                    loadAllPurchases();
+                    loadAllBets();
+                }, 100);
                 
             } catch (error) {
                 console.error('Ошибка загрузки панели администратора:', error);
                 showNotification('Ошибка загрузки панели администратора: ' + error.message, 'error');
+            }
+        }
+
+        // Показать покупки игрока
+        function showPlayerPurchases(playerName) {
+            const playerPurchasesList = playerPurchases.filter(p => p.player_name === playerName);
+            
+            if (playerPurchasesList.length === 0) {
+                showNotification(`У игрока ${playerName} нет покупок`, 'info');
+                return;
+            }
+            
+            let purchasesHtml = `
+                <div style="background: white; padding: 1rem; border-radius: 0.5rem; max-height: 400px; overflow-y: auto;">
+                    <h3 style="margin-bottom: 1rem;">Покупки игрока: ${playerName}</h3>
+                    <div style="display: grid; gap: 0.5rem;">
+                        ${playerPurchasesList.map(purchase => `
+                            <div style="padding: 0.75rem; background: #f8fafc; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                    <strong>${purchase.item_name}</strong>
+                                    <span style="color: var(--warning); font-weight: bold;">
+                                        <i class="fas fa-coins"></i> ${purchase.price}
+                                    </span>
+                                </div>
+                                <div style="font-size: 0.85rem; color: var(--gray);">
+                                    Тип: ${getPurchaseTypeText(purchase.type)}<br>
+                                    Дата: ${new Date(purchase.created_at).toLocaleString('ru-RU')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; text-align: center;">
+                        <strong>Всего покупок: ${playerPurchasesList.length}</strong><br>
+                        <small>Общая стоимость: ${playerPurchasesList.reduce((sum, p) => sum + p.price, 0)} жетонов</small>
+                    </div>
+                </div>
+            `;
+            
+            showNotificationWithHtml(purchasesHtml, 'info');
+        }
+
+        // Загрузка всех покупок
+        function loadAllPurchases() {
+            try {
+                const purchasesList = document.getElementById('purchasesList');
+                if (!purchasesList) return;
+                
+                purchasesList.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка покупок...</div>';
+                
+                if (playerPurchases.length === 0) {
+                    purchasesList.innerHTML = `
+                        <div style="padding: 1rem; text-align: center;">
+                            <div style="color: var(--gray); margin-bottom: 0.5rem;">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                Покупок не найдено
+                                <br>
+                                <small>Игроки еще ничего не покупали в магазине</small>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const searchTerm = document.getElementById('searchPurchases').value.toLowerCase();
+                const typeFilter = document.getElementById('filterPurchaseType').value;
+                
+                purchasesList.innerHTML = '';
+                
+                playerPurchases.forEach(purchase => {
+                    // Фильтрация
+                    if (searchTerm && !purchase.player_name.toLowerCase().includes(searchTerm)) return;
+                    if (typeFilter !== 'all' && purchase.type !== typeFilter) return;
+                    
+                    const purchaseItem = document.createElement('div');
+                    purchaseItem.className = 'player-item';
+                    
+                    purchaseItem.innerHTML = `
+                        <div class="player-info">
+                            <strong>${purchase.player_name}</strong>
+                            <br>
+                            <small>
+                                Товар: <strong>${purchase.item_name}</strong><br>
+                                Тип: <span style="color: ${getPurchaseTypeColor(purchase.type)}; font-weight: 600;">
+                                    ${getPurchaseTypeText(purchase.type)}
+                                </span>
+                            </small>
+                            <br>
+                            <small>
+                                Стоимость: <strong style="color: var(--warning);">${purchase.price} жетонов</strong>
+                            </small>
+                            <br>
+                            <small style="color: var(--gray); font-size: 0.7rem;">
+                                ${new Date(purchase.created_at).toLocaleString('ru-RU')}
+                            </small>
+                        </div>
+                    `;
+                    
+                    purchasesList.appendChild(purchaseItem);
+                });
+                
+                if (purchasesList.children.length === 0) {
+                    purchasesList.innerHTML = '<div class="loading">Покупок по заданным критериям не найдено</div>';
+                }
+                
+            } catch (error) {
+                console.error('Ошибка загрузки покупок:', error);
+                const purchasesList = document.getElementById('purchasesList');
+                if (purchasesList) {
+                    purchasesList.innerHTML = '<div class="error-message">Ошибка загрузки покупок: ' + error.message + '</div>';
+                }
             }
         }
 
@@ -1813,8 +2298,22 @@
             return statusMap[status] || status;
         }
 
-        function getPlayerCabinet(playerName) {
-            return playerCabinets.find(pc => pc.player_name === playerName);
+        function getPurchaseTypeText(type) {
+            const typeMap = {
+                'rating': 'Рейтинг',
+                'skip_penalty': 'Снятие штрафа',
+                'double_tokens': 'Дубликатор жетонов'
+            };
+            return typeMap[type] || type;
+        }
+
+        function getPurchaseTypeColor(type) {
+            const colorMap = {
+                'rating': '#f59e0b',
+                'skip_penalty': '#10b981',
+                'double_tokens': '#8b5cf6'
+            };
+            return colorMap[type] || '#6b7280';
         }
 
         // Функции администратора
@@ -2425,6 +2924,7 @@
             if (!currentUser) return;
             
             const player = allPlayers.find(p => p.name === currentUser.player_name);
+            const userPurchases = playerPurchases.filter(p => p.player_name === currentUser.player_name);
             const matches = player ? parseInt(player.matches) || 0 : 0;
             const wins = player ? parseInt(player.wins) || 0 : 0;
             const winRate = matches > 0 ? Math.round((wins / matches) * 100) : 0;
@@ -2469,12 +2969,34 @@
                             <div style="font-size: 1.2rem; font-weight: bold;">${winRate}%</div>
                         </div>
                     </div>
+                    
+                    ${userPurchases.length > 0 ? `
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                            <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 0.5rem;">Ваши покупки (${userPurchases.length}):</div>
+                            <div style="max-height: 150px; overflow-y: auto; font-size: 0.85rem;">
+                                ${userPurchases.slice(0, 5).map(purchase => `
+                                    <div style="display: flex; justify-content: space-between; padding: 0.25rem 0; border-bottom: 1px solid #f0f0f0;">
+                                        <span>${purchase.item_name}</span>
+                                        <span style="color: var(--warning);">-${purchase.price} жетонов</span>
+                                    </div>
+                                `).join('')}
+                                ${userPurchases.length > 5 ? `
+                                    <div style="text-align: center; padding: 0.5rem; color: var(--gray); font-size: 0.8rem;">
+                                        ... и еще ${userPurchases.length - 5} покупок
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
                 
                 <div style="display: flex; gap: 1rem;">
                     <button onclick="logout()" class="bet-btn danger" style="flex: 1;">
                         <i class="fas fa-sign-out-alt"></i> Выйти
                     </button>
+                    <a href="#shop" onclick="closeModal('playerModal')" class="bet-btn success" style="flex: 1; text-align: center; text-decoration: none;">
+                        <i class="fas fa-store"></i> Магазин
+                    </a>
                 </div>
             `;
             
@@ -2489,6 +3011,7 @@
             closeModal('playerModal');
             updateNavForUser();
             loadLiveMatches();
+            loadShop();
         }
 
         // Размещение ставки
@@ -2602,6 +3125,9 @@
                 // Обновляем данные игроков
                 await loadPlayersData();
                 
+                // Обновляем магазин для отображения измененного баланса
+                loadShop();
+                
             } catch (error) {
                 console.error('Ошибка размещения ставки:', error);
                 showNotification('Ошибка размещения ставки: ' + error.message, 'error');
@@ -2621,9 +3147,30 @@
             }, 3000);
         }
 
-        // Проверка существования элемента
-        function elementExists(id) {
-            return document.getElementById(id) !== null;
+        // Уведомление с HTML
+        function showNotificationWithHtml(html, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = html;
+            
+            // Добавляем кнопку закрытия
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '&times;';
+            closeBtn.style.cssText = 'position: absolute; top: 5px; right: 10px; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;';
+            closeBtn.onclick = function() {
+                notification.remove();
+            };
+            
+            notification.style.position = 'relative';
+            notification.appendChild(closeBtn);
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 10000);
         }
     </script>
 
