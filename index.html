@@ -1309,7 +1309,9 @@
                 try {
                     currentUser = JSON.parse(savedUser);
                     updateNavForUser();
+                    console.log('Пользователь восстановлен:', currentUser.player_name);
                 } catch (e) {
+                    console.error('Ошибка восстановления пользователя:', e);
                     localStorage.removeItem('currentUser');
                 }
             }
@@ -1394,6 +1396,7 @@
             window.addEventListener('click', function(event) {
                 if (event.target.classList.contains('modal')) {
                     event.target.style.display = 'none';
+                    document.body.style.overflow = 'auto';
                 }
             });
             
@@ -1467,6 +1470,7 @@
                     playerPurchases = [];
                 } else {
                     playerPurchases = data || [];
+                    console.log(`Загружено покупок: ${playerPurchases.length}`);
                 }
             } catch (error) {
                 console.error('Ошибка загрузки покупок:', error);
@@ -1518,11 +1522,29 @@
             const grid = document.getElementById('shop-grid');
             if (!grid) return;
             
+            // Очищаем grid перед заполнением
             grid.innerHTML = '';
             
             shopItems.forEach(item => {
                 const shopItem = document.createElement('div');
                 shopItem.className = `shop-item ${item.featured ? 'featured' : ''}`;
+                
+                // Определяем текст и обработчик кнопки
+                let buttonText = '';
+                let buttonClass = '';
+                let buttonOnClick = '';
+                let disabled = false;
+                
+                if (currentUser) {
+                    buttonText = '<i class="fas fa-shopping-cart"></i> Купить';
+                    buttonClass = item.featured ? 'warning' : 'success';
+                    buttonOnClick = `buyItem('${item.id}')`;
+                } else {
+                    buttonText = '<i class="fas fa-lock"></i> Требуется вход';
+                    buttonClass = '';
+                    buttonOnClick = `openModal('loginModal')`;
+                    disabled = true;
+                }
                 
                 shopItem.innerHTML = `
                     <div class="item-icon ${item.iconClass}">
@@ -1535,15 +1557,9 @@
                     <div class="item-description">
                         ${item.description}
                     </div>
-                    ${currentUser ? `
-                        <button onclick="buyItem('${item.id}')" class="bet-btn ${item.featured ? 'warning' : 'success'}" style="width: 100%;">
-                            <i class="fas fa-shopping-cart"></i> Купить
-                        </button>
-                    ` : `
-                        <button onclick="showNotification('Войдите, чтобы покупать товары', 'error')" class="bet-btn" style="width: 100%;" disabled>
-                            <i class="fas fa-lock"></i> Требуется вход
-                        </button>
-                    `}
+                    <button onclick="${buttonOnClick}" class="bet-btn ${buttonClass}" style="width: 100%;" ${disabled ? 'disabled' : ''}>
+                        ${buttonText}
+                    </button>
                 `;
                 
                 grid.appendChild(shopItem);
@@ -1830,7 +1846,8 @@
                     closeModal('loginModal');
                     updateNavForUser();
                     loadLiveMatches();
-                    loadShop();
+                    loadShop(); // Обновляем магазин после входа
+                    console.log('Пользователь вошел:', currentUser.player_name);
                 } else {
                     showNotification('Неверный логин или пароль', 'error');
                 }
@@ -1844,6 +1861,7 @@
         async function buyItem(itemId) {
             if (!currentUser) {
                 showNotification('Войдите, чтобы покупать товары', 'error');
+                openModal('loginModal');
                 return;
             }
             
@@ -1853,12 +1871,20 @@
                 return;
             }
             
+            // Проверяем баланс
             if ((currentUser.tokens || 0) < item.price) {
                 showNotification(`Недостаточно жетонов. Нужно: ${item.price}, у вас: ${currentUser.tokens || 0}`, 'error');
                 return;
             }
             
+            // Подтверждение покупки
+            if (!confirm(`Купить "${item.name}" за ${item.price} жетонов?`)) {
+                return;
+            }
+            
             try {
+                console.log(`Покупка товара: ${item.name} за ${item.price} жетонов для ${currentUser.player_name}`);
+                
                 // Списываем жетоны
                 const newTokens = (currentUser.tokens || 0) - item.price;
                 
@@ -1867,45 +1893,65 @@
                     .update({ tokens: newTokens })
                     .eq('id', currentUser.id);
                 
-                if (updateError) throw updateError;
+                if (updateError) {
+                    console.error('Ошибка списания жетонов:', updateError);
+                    throw updateError;
+                }
+                
+                console.log('Жетоны списаны успешно');
                 
                 // Обновляем данные игрока в зависимости от типа покупки
                 if (item.type === 'rating') {
                     const player = allPlayers.find(p => p.name === currentUser.player_name);
                     if (player) {
                         const newRating = parseInt(player.rating) + item.effect.rating;
-                        await db
+                        const { error: ratingError } = await db
                             .from('players')
                             .update({ rating: newRating })
                             .eq('name', currentUser.player_name);
+                        
+                        if (ratingError) {
+                            console.error('Ошибка обновления рейтинга:', ratingError);
+                            throw ratingError;
+                        }
+                        
+                        console.log(`Рейтинг обновлен: ${player.rating} -> ${newRating}`);
                     }
                 }
                 
                 // Создаем запись о покупке
-                const purchaseId = 'purchase_' + Date.now().toString(36);
+                const purchaseId = 'purchase_' + Date.now().toString(36) + Math.random().toString(36).substr(2);
                 
+                // Подготовка данных для покупки
+                const purchaseData = {
+                    id: purchaseId,
+                    player_name: currentUser.player_name,
+                    item_id: itemId,
+                    item_name: item.name,
+                    price: item.price,
+                    type: item.type,
+                    effect: item.effect,
+                    created_at: new Date().toISOString()
+                };
+                
+                console.log('Данные покупки:', purchaseData);
+                
+                // Проверяем существование таблицы покупок
                 try {
                     const { error: purchaseError } = await db
                         .from('player_purchases')
-                        .insert([{
-                            id: purchaseId,
-                            player_name: currentUser.player_name,
-                            item_id: itemId,
-                            item_name: item.name,
-                            price: item.price,
-                            type: item.type,
-                            effect: item.effect,
-                            created_at: new Date().toISOString()
-                        }]);
+                        .insert([purchaseData]);
                     
                     if (purchaseError) {
-                        // Если таблица не существует, создаем ее
+                        // Если таблица не существует, пропускаем ошибку
                         if (purchaseError.message.includes("Could not find the table")) {
-                            // Пропускаем, покупка все равно зафиксирована в обновлении баланса
-                            console.log('Таблица покупок не существует, создадим позже');
+                            console.log('Таблица покупок не существует, пропускаем запись покупки');
+                            showNotification(`Вы успешно купили "${item.name}"! Таблица покупок не создана - обратитесь к администратору.`, 'warning');
                         } else {
                             throw purchaseError;
                         }
+                    } else {
+                        console.log('Покупка записана в базу данных');
                     }
                 } catch (error) {
                     console.log('Ошибка записи покупки:', error.message);
@@ -1929,6 +1975,9 @@
                 if (document.getElementById('playerModal').style.display === 'block') {
                     showPlayerInfo();
                 }
+                
+                // Обновляем статистику
+                await updateStats();
                 
             } catch (error) {
                 console.error('Ошибка покупки:', error);
@@ -2913,6 +2962,7 @@
             if (currentUser) {
                 if (loginText) loginText.textContent = currentUser.player_name || 'Игрок';
                 if (mobileLoginText) mobileLoginText.textContent = currentUser.player_name || 'Игрок';
+                console.log('Навигация обновлена для пользователя:', currentUser.player_name);
             } else {
                 if (loginText) loginText.textContent = 'Войти';
                 if (mobileLoginText) mobileLoginText.textContent = 'Войти';
@@ -2921,7 +2971,11 @@
 
         // Показать информацию об игроке
         function showPlayerInfo() {
-            if (!currentUser) return;
+            if (!currentUser) {
+                showNotification('Войдите в систему', 'error');
+                openModal('loginModal');
+                return;
+            }
             
             const player = allPlayers.find(p => p.name === currentUser.player_name);
             const userPurchases = playerPurchases.filter(p => p.player_name === currentUser.player_name);
@@ -2994,13 +3048,26 @@
                     <button onclick="logout()" class="bet-btn danger" style="flex: 1;">
                         <i class="fas fa-sign-out-alt"></i> Выйти
                     </button>
-                    <a href="#shop" onclick="closeModal('playerModal')" class="bet-btn success" style="flex: 1; text-align: center; text-decoration: none;">
+                    <button onclick="openShopFromProfile()" class="bet-btn success" style="flex: 1;">
                         <i class="fas fa-store"></i> Магазин
-                    </a>
+                    </button>
                 </div>
             `;
             
             openModal('playerModal');
+        }
+
+        // Открыть магазин из профиля
+        function openShopFromProfile() {
+            closeModal('playerModal');
+            // Прокрутка к магазину
+            const shopSection = document.getElementById('shop');
+            if (shopSection) {
+                shopSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
         }
 
         // Выход из системы
@@ -3018,6 +3085,7 @@
         async function placeBet(matchId) {
             if (!currentUser) {
                 showNotification('Войдите, чтобы сделать ставку', 'error');
+                openModal('loginModal');
                 return;
             }
             
@@ -3059,7 +3127,7 @@
                 const potentialWin = Math.round(amount * odds * 100) / 100;
                 
                 // Создаем запись о ставке
-                const betId = 'bet_' + Date.now().toString(36);
+                const betId = 'bet_' + Date.now().toString(36) + Math.random().toString(36).substr(2);
                 
                 const { error: betError } = await db
                     .from('player_bets')
@@ -3143,7 +3211,9 @@
             document.body.appendChild(notification);
             
             setTimeout(() => {
-                notification.remove();
+                if (notification.parentNode) {
+                    notification.remove();
+                }
             }, 3000);
         }
 
@@ -3162,6 +3232,7 @@
             };
             
             notification.style.position = 'relative';
+            notification.style.padding = '1rem 2rem 1rem 1.5rem';
             notification.appendChild(closeBtn);
             
             document.body.appendChild(notification);
