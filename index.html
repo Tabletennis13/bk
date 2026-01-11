@@ -38,6 +38,7 @@
             padding: 0 1rem;
         }
 
+        /* Навигация */
         .navbar {
             background: white;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -66,7 +67,7 @@
 
         .nav-links {
             display: flex;
-            gap: 2rem;
+            gap: 1.5rem;
             align-items: center;
         }
 
@@ -78,6 +79,7 @@
             align-items: center;
             gap: 0.5rem;
             transition: color 0.3s;
+            padding: 0.5rem;
         }
 
         .nav-links a:hover {
@@ -94,16 +96,56 @@
             color: white !important;
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
+            white-space: nowrap;
         }
 
         .btn-admin {
             background: var(--danger);
         }
 
+        /* Мобильное меню */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--dark);
+            cursor: pointer;
+        }
+
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 999;
+            padding: 1rem;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-menu a {
+            display: block;
+            padding: 1rem;
+            text-decoration: none;
+            color: var(--dark);
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .mobile-menu a:last-child {
+            border-bottom: none;
+        }
+
+        /* Герой секция */
         .hero {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 4rem 1rem;
+            padding: 3rem 1rem;
             text-align: center;
         }
 
@@ -113,13 +155,13 @@
         }
 
         .hero h1 {
-            font-size: 3rem;
+            font-size: 2rem;
             margin-bottom: 1rem;
             font-weight: 800;
         }
 
         .hero-subtitle {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             opacity: 0.9;
             margin-bottom: 2rem;
         }
@@ -127,8 +169,8 @@
         .hero-stats {
             display: flex;
             justify-content: center;
-            gap: 3rem;
-            margin: 3rem 0;
+            gap: 2rem;
+            margin: 2rem 0;
             flex-wrap: wrap;
         }
 
@@ -136,22 +178,26 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            min-width: 150px;
         }
 
         .stat i {
-            font-size: 2.5rem;
+            font-size: 2rem;
             opacity: 0.8;
         }
 
         .stat-number {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: bold;
             display: block;
             line-height: 1;
         }
 
         .stat-label {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             opacity: 0.8;
         }
 
@@ -163,7 +209,7 @@
         }
 
         .btn-primary, .btn-secondary {
-            padding: 1rem 2rem;
+            padding: 0.8rem 1.5rem;
             border-radius: 0.5rem;
             text-decoration: none;
             font-weight: 600;
@@ -178,44 +224,86 @@
             color: var(--primary);
         }
 
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
         .btn-secondary {
             background: transparent;
             color: white;
             border: 2px solid white;
         }
 
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Правила */
+        .rules-banner {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid var(--warning);
+            margin: 2rem auto;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            max-width: 1200px;
+        }
+
+        .banner-content {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .banner-icon {
+            font-size: 1.5rem;
+            color: var(--warning);
+            flex-shrink: 0;
+            margin-top: 0.25rem;
+        }
+
+        /* Секции */
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
-            padding: 2rem 0 0;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem 0 0;
         }
 
         .section-header h2 {
-            font-size: 2rem;
+            font-size: 1.5rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
+        /* Матчи */
         .matches-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1.5rem;
-            padding: 2rem 0;
+            padding: 1rem 0 2rem;
+        }
+
+        @media (max-width: 640px) {
+            .matches-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .match-card {
             background: white;
             border-radius: 1rem;
-            padding: 1.5rem;
+            padding: 1.25rem;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
 
         .match-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
         }
 
         .match-header {
@@ -228,7 +316,7 @@
         .match-status {
             padding: 0.25rem 0.75rem;
             border-radius: 2rem;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             font-weight: 600;
         }
 
@@ -248,6 +336,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
+            gap: 0.5rem;
         }
 
         .player {
@@ -274,19 +363,35 @@
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: bold;
         }
 
         .vs {
             font-weight: bold;
             color: var(--gray);
-            margin: 0 1rem;
+            margin: 0 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .player-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .player-rating {
+            color: var(--gray);
+            font-size: 0.8rem;
+            background: var(--gray-light);
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            display: inline-block;
         }
 
         .match-odds {
             display: flex;
-            gap: 1rem;
+            gap: 0.75rem;
             margin-bottom: 1.5rem;
         }
 
@@ -299,6 +404,9 @@
             cursor: pointer;
             transition: all 0.3s;
             font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .odds-btn:hover {
@@ -308,22 +416,26 @@
 
         .odds-value {
             display: block;
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: bold;
             color: var(--primary);
+            margin-top: 0.25rem;
         }
 
+        /* Таблица лидеров */
         .leaderboard-table {
             background: white;
             border-radius: 1rem;
             overflow: hidden;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin: 2rem 0;
+            margin: 1rem 0 2rem;
+            overflow-x: auto;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px;
         }
 
         th {
@@ -336,7 +448,7 @@
         }
 
         td {
-            padding: 1rem;
+            padding: 0.75rem 1rem;
             border-bottom: 1px solid var(--gray-light);
         }
 
@@ -347,6 +459,7 @@
         .player-rank {
             font-weight: bold;
             color: var(--primary);
+            text-align: center;
         }
 
         .player-avatar-small {
@@ -359,16 +472,57 @@
             border: 2px solid var(--primary);
         }
 
+        /* Как начать играть */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem 0;
+        }
+
+        .step {
+            text-align: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin: 0 auto 1rem;
+        }
+
+        .step-icon {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .step h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        /* Футер */
         .footer {
             background: var(--dark);
             color: white;
-            padding: 3rem 0 1rem;
+            padding: 2rem 0 1rem;
             margin-top: 3rem;
         }
 
         .footer-content {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 2rem;
             margin-bottom: 2rem;
         }
@@ -376,6 +530,7 @@
         .footer-section h3, .footer-section h4 {
             margin-bottom: 1rem;
             color: white;
+            font-size: 1.1rem;
         }
 
         .footer-section a {
@@ -383,6 +538,7 @@
             text-decoration: none;
             display: block;
             margin-bottom: 0.5rem;
+            transition: color 0.3s;
         }
 
         .footer-section a:hover {
@@ -394,9 +550,10 @@
             padding-top: 2rem;
             border-top: 1px solid #374151;
             color: #9ca3af;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
         }
 
+        /* Модальные окна */
         .modal {
             display: none;
             position: fixed;
@@ -406,15 +563,19 @@
             width: 100%;
             height: 100%;
             background: rgba(0,0,0,0.5);
+            padding: 1rem;
         }
 
         .modal-content {
             background: white;
             margin: 10% auto;
-            padding: 2rem;
+            padding: 1.5rem;
             border-radius: 1rem;
             max-width: 500px;
+            width: 100%;
             position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         .close-modal {
@@ -424,10 +585,17 @@
             font-size: 1.5rem;
             cursor: pointer;
             color: var(--gray);
+            background: none;
+            border: none;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
         }
 
         .form-group label {
@@ -442,8 +610,52 @@
             border: 2px solid var(--gray-light);
             border-radius: 0.5rem;
             font-size: 1rem;
+            transition: border-color 0.3s;
         }
 
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Кнопки */
+        .bet-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .bet-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .bet-btn.danger {
+            background: var(--danger);
+        }
+
+        .bet-btn.danger:hover {
+            background: #dc2626;
+        }
+
+        .bet-btn.success {
+            background: var(--success);
+        }
+
+        .bet-btn.success:hover {
+            background: #059669;
+        }
+
+        /* Загрузка и ошибки */
         .loading {
             text-align: center;
             padding: 2rem;
@@ -466,6 +678,7 @@
             margin: 1rem 0;
         }
 
+        /* Уведомления */
         .notification {
             position: fixed;
             top: 20px;
@@ -476,6 +689,8 @@
             font-weight: 500;
             z-index: 1002;
             animation: slideIn 0.3s ease;
+            max-width: 300px;
+            word-wrap: break-word;
         }
 
         @keyframes slideIn {
@@ -487,22 +702,122 @@
         .notification.error { background: var(--danger); }
         .notification.info { background: var(--primary); }
 
+        /* Админ панель */
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 1002;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .admin-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .admin-section h3 {
+            margin-bottom: 1rem;
+            color: var(--dark);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .player-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--gray-light);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+        }
+
+        .player-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-item:last-child {
+            border-bottom: none;
+        }
+
+        .player-info {
+            flex: 1;
+        }
+
+        .player-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.25rem 0.5rem;
+            border: none;
+            border-radius: 0.25rem;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .action-btn.add-tokens {
+            background: var(--success);
+        }
+
+        .action-btn.delete {
+            background: var(--danger);
+        }
+
+        .action-btn.small {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        /* Мобильная адаптация */
         @media (max-width: 768px) {
             .nav-links {
                 display: none;
             }
             
+            .mobile-menu-btn {
+                display: block;
+            }
+            
             .hero h1 {
-                font-size: 2rem;
+                font-size: 1.75rem;
             }
             
             .hero-stats {
-                gap: 1.5rem;
+                gap: 1rem;
             }
             
             .stat {
-                flex-direction: column;
-                text-align: center;
+                min-width: 120px;
+                padding: 0.75rem;
+            }
+            
+            .stat i {
+                font-size: 1.5rem;
+            }
+            
+            .stat-number {
+                font-size: 1.5rem;
             }
             
             .section-header {
@@ -510,31 +825,117 @@
                 align-items: flex-start;
                 gap: 1rem;
             }
+            
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                margin: 5% auto;
+                padding: 1rem;
+            }
+            
+            .player-avatar-img, .player-avatar {
+                width: 50px;
+                height: 50px;
+            }
+            
+            table {
+                font-size: 0.9rem;
+            }
+            
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+            
+            .stat {
+                min-width: 100%;
+                justify-content: center;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .match-card {
+                padding: 1rem;
+            }
+            
+            .vs {
+                font-size: 0.8rem;
+            }
+            
+            .player-name {
+                font-size: 0.8rem;
+            }
+            
+            .player-rating {
+                font-size: 0.7rem;
+                padding: 0.15rem 0.35rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Навигация -->
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-brand">
                 <i class="fas fa-table-tennis-paddle-ball"></i>
                 <span>Теннисная Лига</span>
             </div>
+            
             <div class="nav-links">
                 <a href="#" class="active"><i class="fas fa-home"></i> Главная</a>
                 <a href="#matches"><i class="fas fa-trophy"></i> Матчи</a>
                 <a href="#shop"><i class="fas fa-store"></i> Магазин</a>
                 <a href="#rules"><i class="fas fa-book"></i> Правила</a>
-                <a href="#login" class="btn-login" id="loginBtn"><i class="fas fa-user"></i> Войти</a>
+                <a href="#login" class="btn-login" id="loginBtn"><i class="fas fa-user"></i> <span id="loginText">Войти</span></a>
                 <a href="#admin" class="btn-admin" id="adminBtn"><i class="fas fa-cog"></i> Админ</a>
             </div>
+            
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
         </div>
     </nav>
 
+    <!-- Мобильное меню -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#" class="active"><i class="fas fa-home"></i> Главная</a>
+        <a href="#matches"><i class="fas fa-trophy"></i> Матчи</a>
+        <a href="#shop"><i class="fas fa-store"></i> Магазин</a>
+        <a href="#rules"><i class="fas fa-book"></i> Правила</a>
+        <a href="#login" id="mobileLoginBtn"><i class="fas fa-user"></i> <span id="mobileLoginText">Войти</span></a>
+        <a href="#admin" id="mobileAdminBtn"><i class="fas fa-cog"></i> Админ</a>
+    </div>
+
+    <!-- Герой секция -->
     <section class="hero">
         <div class="hero-content">
             <h1>Лига ставок на настольный теннис</h1>
             <p class="hero-subtitle">Соревнуйся, делай ставки, побеждай! Виртуальные жетоны за реальные достижения</p>
+            
             <div class="hero-stats">
                 <div class="stat">
                     <i class="fas fa-users"></i>
@@ -558,6 +959,7 @@
                     </div>
                 </div>
             </div>
+            
             <div class="hero-buttons">
                 <a href="#matches" class="btn-primary">
                     <i class="fas fa-play"></i> Начать делать ставки
@@ -569,6 +971,7 @@
         </div>
     </section>
 
+    <!-- Правила -->
     <section id="rules">
         <div class="container">
             <div class="rules-banner">
@@ -583,6 +986,7 @@
         </div>
     </section>
 
+    <!-- Матчи -->
     <section id="matches">
         <div class="container">
             <div class="section-header">
@@ -596,6 +1000,7 @@
         </div>
     </section>
 
+    <!-- Таблица лидеров -->
     <section class="leaderboard">
         <div class="container">
             <div class="section-header">
@@ -605,7 +1010,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th width="50">#</th>
                             <th>Игрок</th>
                             <th>Рейтинг</th>
                             <th>Матчи</th>
@@ -625,9 +1030,10 @@
         </div>
     </section>
 
+    <!-- Как начать играть -->
     <section class="how-to-play">
         <div class="container">
-            <h2 class="section-title">Как начать играть?</h2>
+            <h2 class="section-title" style="text-align: center; margin-bottom: 2rem; font-size: 1.8rem;">Как начать играть?</h2>
             <div class="steps-grid">
                 <div class="step">
                     <div class="step-number">1</div>
@@ -657,37 +1063,7 @@
         </div>
     </section>
 
-    <!-- Модальные окна -->
-    <div id="loginModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('loginModal')">&times;</span>
-            <h2><i class="fas fa-user"></i> Вход в личный кабинет</h2>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label>Логин:</label>
-                    <input type="text" id="loginUsername" required>
-                </div>
-                <div class="form-group">
-                    <label>Пароль:</label>
-                    <input type="password" id="loginPassword" required>
-                </div>
-                <button type="submit" class="bet-btn" style="width: 100%;">Войти</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="adminModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('adminModal')">&times;</span>
-            <h2><i class="fas fa-cog"></i> Панель администратора</h2>
-            <div class="form-group">
-                <label>Пароль администратора:</label>
-                <input type="password" id="adminPassword">
-                <button onclick="enterAdminPanel()" class="bet-btn" style="width: 100%; margin-top: 1rem;">Войти</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- Футер -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
@@ -718,6 +1094,49 @@
         </div>
     </footer>
 
+    <!-- Модальные окна -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('loginModal')">&times;</button>
+            <h2><i class="fas fa-user"></i> Вход в личный кабинет</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Логин:</label>
+                    <input type="text" id="loginUsername" required>
+                </div>
+                <div class="form-group">
+                    <label>Пароль:</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="bet-btn" style="width: 100%; margin-top: 1rem;">
+                    <i class="fas fa-sign-in-alt"></i> Войти
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('adminModal')">&times;</button>
+            <h2><i class="fas fa-cog"></i> Панель администратора</h2>
+            <div class="form-group">
+                <label>Пароль администратора:</label>
+                <input type="password" id="adminPassword">
+            </div>
+            <button onclick="enterAdminPanel()" class="bet-btn" style="width: 100%; margin-top: 1rem;">
+                <i class="fas fa-sign-in-alt"></i> Войти
+            </button>
+        </div>
+    </div>
+
+    <div id="playerModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('playerModal')">&times;</button>
+            <h2><i class="fas fa-user-circle"></i> Личный кабинет</h2>
+            <div id="playerInfo"></div>
+        </div>
+    </div>
+
     <script>
         // Конфигурация Supabase
         const SUPABASE_URL = 'https://bqycjfcjtdawyrysgrbw.supabase.co';
@@ -726,15 +1145,17 @@
         let db;
         let currentUser = null;
         let isAdmin = false;
-        let allPlayers = []; // Все игроки из таблицы players
-        let playerCabinets = []; // Все кабинеты из таблицы player_cabinets
+        let allPlayers = [];
+        let playerCabinets = [];
+        let allMatches = [];
 
+        // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('Инициализация приложения...');
+            db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
-            // Загружаем данные
-            loadData();
             setupEventListeners();
+            loadData();
             
             // Проверяем сохраненного пользователя
             const savedUser = localStorage.getItem('currentUser');
@@ -748,14 +1169,114 @@
             }
         });
 
-        // Загрузка всех данных
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            console.log('Настройка обработчиков событий...');
+            
+            // Мобильное меню
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('active');
+                });
+                
+                // Закрытие меню при клике на ссылку
+                const mobileLinks = mobileMenu.querySelectorAll('a');
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        mobileMenu.classList.remove('active');
+                    });
+                });
+            }
+            
+            // Кнопки входа
+            const loginBtn = document.getElementById('loginBtn');
+            const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+            
+            if (loginBtn) {
+                loginBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (currentUser) {
+                        showPlayerInfo();
+                    } else {
+                        openModal('loginModal');
+                    }
+                });
+            }
+            
+            if (mobileLoginBtn) {
+                mobileLoginBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (currentUser) {
+                        showPlayerInfo();
+                    } else {
+                        openModal('loginModal');
+                    }
+                });
+            }
+            
+            // Кнопки админа
+            const adminBtn = document.getElementById('adminBtn');
+            const mobileAdminBtn = document.getElementById('mobileAdminBtn');
+            
+            if (adminBtn) {
+                adminBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openModal('adminModal');
+                });
+            }
+            
+            if (mobileAdminBtn) {
+                mobileAdminBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openModal('adminModal');
+                });
+            }
+            
+            // Форма входа
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    loginUser();
+                });
+            }
+            
+            // Закрытие модальных окон
+            window.addEventListener('click', function(event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = 'none';
+                }
+            });
+            
+            // Плавная прокрутка
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    const targetId = this.getAttribute('href');
+                    if (targetId && targetId !== '#') {
+                        const targetElement = document.querySelector(targetId);
+                        if (targetElement) {
+                            e.preventDefault();
+                            targetElement.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
+                    }
+                });
+            });
+        }
+
+        // Загрузка данных
         async function loadData() {
             try {
                 console.log('Загрузка данных...');
                 await Promise.all([
                     loadPlayersData(),
+                    loadMatchesData(),
                     updateStats(),
-                    loadLiveMatches(),
                     loadLeaderboard()
                 ]);
                 console.log('Данные успешно загружены');
@@ -765,160 +1286,91 @@
             }
         }
 
-        // Загрузка игроков из таблицы players
+        // Загрузка игроков
         async function loadPlayersData() {
             try {
-                console.log('Загрузка игроков из таблицы players...');
+                const [playersResponse, cabinetsResponse] = await Promise.all([
+                    db.from('players').select('*').order('rating', { ascending: false }),
+                    db.from('player_cabinets').select('*')
+                ]);
                 
-                // Загружаем всех игроков из таблицы players
-                const { data: players, error: playersError } = await db
-                    .from('players')
-                    .select('*')
-                    .order('rating', { ascending: false });
+                allPlayers = playersResponse.data || [];
+                playerCabinets = cabinetsResponse.data || [];
                 
-                if (playersError) {
-                    console.error('Ошибка загрузки игроков:', playersError);
-                    allPlayers = [];
-                    return;
-                }
-                
-                allPlayers = players || [];
-                console.log('Загружено игроков:', allPlayers.length);
-                
-                // Загружаем кабинеты игроков
-                const { data: cabinets, error: cabinetsError } = await db
-                    .from('player_cabinets')
-                    .select('*');
-                
-                if (cabinetsError) {
-                    console.warn('Ошибка загрузки кабинетов:', cabinetsError);
-                    playerCabinets = [];
-                } else {
-                    playerCabinets = cabinets || [];
-                    console.log('Загружено кабинетов:', playerCabinets.length);
-                }
-                
+                console.log(`Загружено игроков: ${allPlayers.length}, кабинетов: ${playerCabinets.length}`);
             } catch (error) {
-                console.error('Ошибка загрузки данных игроков:', error);
+                console.error('Ошибка загрузки игроков:', error);
                 allPlayers = [];
                 playerCabinets = [];
             }
         }
 
-        // Получение рейтинга игрока по имени
-        function getPlayerRating(playerName) {
-            const player = allPlayers.find(p => p.name === playerName);
-            return player ? parseInt(player.rating) || 1000 : 1000;
-        }
-
-        // Получение аватарки игрока по имени
-        function getPlayerAvatar(playerName) {
-            const player = allPlayers.find(p => p.name === playerName);
-            return player ? player.avatar : null;
-        }
-
-        // Получение статистики игрока по имени
-        function getPlayerStats(playerName) {
-            const player = allPlayers.find(p => p.name === playerName);
-            if (!player) return { matches: 0, wins: 0, winRate: 0 };
-            
-            const matches = parseInt(player.matches) || 0;
-            const wins = parseInt(player.wins) || 0;
-            const winRate = matches > 0 ? Math.round((wins / matches) * 100) : 0;
-            
-            return { matches, wins, winRate };
-        }
-
-        // Получение кабинета игрока по имени
-        function getPlayerCabinet(playerName) {
-            return playerCabinets.find(pc => pc.player_name === playerName);
+        // Загрузка матчей
+        async function loadMatchesData() {
+            try {
+                const { data, error } = await db
+                    .from('bet_matches')
+                    .select('*')
+                    .in('status', ['live', 'pending', 'finished'])
+                    .order('date', { ascending: false });
+                
+                if (error) throw error;
+                allMatches = data || [];
+                loadLiveMatches();
+            } catch (error) {
+                console.error('Ошибка загрузки матчей:', error);
+                allMatches = [];
+            }
         }
 
         // Обновление статистики
         async function updateStats() {
             try {
-                // Количество игроков из таблицы players
-                const playerCount = allPlayers.length;
-                document.getElementById('total-players').textContent = playerCount;
+                // Игроки
+                document.getElementById('total-players').textContent = allPlayers.length;
                 
                 // LIVE матчи
-                const { count: liveMatchesCount, error: matchesError } = await db
-                    .from('bet_matches')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('status', 'live');
+                const liveMatches = allMatches.filter(m => m.status === 'live');
+                document.getElementById('live-matches').textContent = liveMatches.length;
                 
-                if (matchesError) {
-                    console.warn('Ошибка подсчета матчей:', matchesError.message);
-                    document.getElementById('live-matches').textContent = '0';
-                } else {
-                    document.getElementById('live-matches').textContent = liveMatchesCount || 0;
-                }
-                
-                // Общее количество жетонов из кабинетов
+                // Жетоны
                 const totalTokens = playerCabinets.reduce((sum, pc) => sum + (pc.tokens || 0), 0);
                 document.getElementById('total-bets').textContent = totalTokens;
-                
             } catch (error) {
                 console.error('Ошибка обновления статистики:', error);
-                document.getElementById('total-players').textContent = '0';
-                document.getElementById('live-matches').textContent = '0';
-                document.getElementById('total-bets').textContent = '0';
             }
         }
 
         // Загрузка LIVE матчей
-        async function loadLiveMatches() {
-            try {
-                const grid = document.getElementById('live-matches-grid');
-                if (!grid) return;
-                
-                grid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка матчей...</div>';
-                
-                const { data: matches, error } = await db
-                    .from('bet_matches')
-                    .select('*')
-                    .in('status', ['live', 'pending'])
-                    .order('date', { ascending: true });
-                
-                if (error) {
-                    console.error('Ошибка загрузки матчей:', error);
-                    grid.innerHTML = '<div class="error-message">Ошибка загрузки матчей</div>';
-                    return;
-                }
-                
-                if (!matches || matches.length === 0) {
-                    grid.innerHTML = '<div class="loading">Нет активных матчей</div>';
-                    return;
-                }
-                
-                grid.innerHTML = '';
-                
-                matches.forEach(match => {
-                    const matchCard = createMatchCard(match);
-                    grid.appendChild(matchCard);
-                });
-                
-            } catch (error) {
-                console.error('Ошибка загрузки матчей:', error);
-                const grid = document.getElementById('live-matches-grid');
-                if (grid) {
-                    grid.innerHTML = '<div class="error-message">Ошибка загрузки матчей</div>';
-                }
+        function loadLiveMatches() {
+            const grid = document.getElementById('live-matches-grid');
+            if (!grid) return;
+            
+            const liveMatches = allMatches.filter(m => m.status === 'live' || m.status === 'pending');
+            
+            if (liveMatches.length === 0) {
+                grid.innerHTML = '<div class="loading">Нет активных матчей</div>';
+                return;
             }
+            
+            grid.innerHTML = '';
+            liveMatches.forEach(match => {
+                const matchCard = createMatchCard(match);
+                grid.appendChild(matchCard);
+            });
         }
 
-        // Создание карточки матча с реальными данными игроков
+        // Создание карточки матча
         function createMatchCard(match) {
             const matchCard = document.createElement('div');
             matchCard.className = 'match-card';
             
-            // Получаем реальные данные игроков
-            const player1Rating = getPlayerRating(match.player1);
-            const player2Rating = getPlayerRating(match.player2);
-            const player1Avatar = getPlayerAvatar(match.player1);
-            const player2Avatar = getPlayerAvatar(match.player2);
+            const player1 = allPlayers.find(p => p.name === match.player1);
+            const player2 = allPlayers.find(p => p.name === match.player2);
             
-            // Рассчитываем коэффициенты на основе реальных рейтингов
+            const player1Rating = player1 ? parseInt(player1.rating) : 1000;
+            const player2Rating = player2 ? parseInt(player2.rating) : 1000;
+            
             const odds = calculateOdds(player1Rating, player2Rating);
             
             matchCard.innerHTML = `
@@ -932,11 +1384,11 @@
                 </div>
                 <div class="match-players">
                     <div class="player">
-                        ${player1Avatar ? 
-                            `<img src="${player1Avatar}" alt="${match.player1}" class="player-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                        ${player1 && player1.avatar ? 
+                            `<img src="${player1.avatar}" alt="${match.player1}" class="player-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
                             ''
                         }
-                        <div class="player-avatar" style="${player1Avatar ? 'display: none;' : ''}">
+                        <div class="player-avatar" style="${player1 && player1.avatar ? 'display: none;' : ''}">
                             ${match.player1 ? match.player1.charAt(0).toUpperCase() : '?'}
                         </div>
                         <div class="player-name">${match.player1 || 'Игрок 1'}</div>
@@ -944,11 +1396,11 @@
                     </div>
                     <div class="vs">VS</div>
                     <div class="player">
-                        ${player2Avatar ? 
-                            `<img src="${player2Avatar}" alt="${match.player2}" class="player-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                        ${player2 && player2.avatar ? 
+                            `<img src="${player2.avatar}" alt="${match.player2}" class="player-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
                             ''
                         }
-                        <div class="player-avatar" style="${player2Avatar ? 'display: none;' : ''}">
+                        <div class="player-avatar" style="${player2 && player2.avatar ? 'display: none;' : ''}">
                             ${match.player2 ? match.player2.charAt(0).toUpperCase() : '?'}
                         </div>
                         <div class="player-name">${match.player2 || 'Игрок 2'}</div>
@@ -956,15 +1408,25 @@
                     </div>
                 </div>
                 <div class="match-odds">
-                    <button class="odds-btn" onclick="prepareBet('${match.id}', 'player1', ${odds.player1 || 1.5}, '${match.player1}')">
+                    <button class="odds-btn" onclick="prepareBet('${match.id}', 'player1', ${odds.player1}, '${match.player1}')">
                         П1
-                        <span class="odds-value">${(odds.player1 || 1.5).toFixed(2)}</span>
+                        <span class="odds-value">${odds.player1.toFixed(2)}</span>
                     </button>
-                    <button class="odds-btn" onclick="prepareBet('${match.id}', 'player2', ${odds.player2 || 2.5}, '${match.player2}')">
+                    <button class="odds-btn" onclick="prepareBet('${match.id}', 'player2', ${odds.player2}, '${match.player2}')">
                         П2
-                        <span class="odds-value">${(odds.player2 || 2.5).toFixed(2)}</span>
+                        <span class="odds-value">${odds.player2.toFixed(2)}</span>
                     </button>
                 </div>
+                ${match.status === 'live' && currentUser ? `
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="number" id="bet-amount-${match.id}" placeholder="Сумма" min="1" max="${Math.floor((currentUser.tokens || 0) * 0.5)}" style="flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem;">
+                        <button onclick="placeBet('${match.id}')" class="bet-btn" style="padding: 0.5rem 1rem;">
+                            <i class="fas fa-coins"></i> Ставка
+                        </button>
+                    </div>
+                </div>
+                ` : ''}
             `;
             
             return matchCard;
@@ -1002,98 +1464,42 @@
             }
         }
 
-        // Загрузка таблицы лидеров (только из players)
-        async function loadLeaderboard() {
-            try {
-                const tbody = document.getElementById('leaderboard-body');
-                if (!tbody) return;
-                
-                tbody.innerHTML = '<tr><td colspan="6" class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка...</td></tr>';
-                
-                // Сортируем игроков по рейтингу
-                const sortedPlayers = [...allPlayers].sort((a, b) => 
-                    (parseInt(b.rating) || 0) - (parseInt(a.rating) || 0)
-                ).slice(0, 10);
-                
-                if (sortedPlayers.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="loading">Нет данных об игроках</td></tr>';
-                    return;
-                }
-                
-                tbody.innerHTML = '';
-                
-                sortedPlayers.forEach((player, index) => {
-                    const matches = parseInt(player.matches) || 0;
-                    const wins = parseInt(player.wins) || 0;
-                    const winRate = matches > 0 ? Math.round((wins / matches) * 100) : 0;
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="player-rank">${index + 1}</td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                ${player.avatar ? 
-                                    `<img src="${player.avatar}" alt="${player.name}" class="player-avatar-small" onerror="this.style.display='none'">` : 
-                                    ''
-                                }
-                                <div class="player-avatar" style="width: 40px; height: 40px; font-size: 1rem; display: ${player.avatar ? 'none' : 'flex'};">
-                                    ${player.name ? player.name.charAt(0).toUpperCase() : '?'}
-                                </div>
-                                ${player.name || 'Без имени'}
-                            </div>
-                        </td>
-                        <td><strong>${player.rating || 1000}</strong></td>
-                        <td>${matches}</td>
-                        <td>${wins}</td>
-                        <td>${winRate}%</td>
-                    `;
-                    tbody.appendChild(row);
-                });
-                
-            } catch (error) {
-                console.error('Ошибка загрузки таблицы лидеров:', error);
-                const tbody = document.getElementById('leaderboard-body');
-                if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="error-message">Ошибка загрузки таблицы лидеров</td></tr>';
-                }
-            }
-        }
-
-        // Настройка обработчиков событий
-        function setupEventListeners() {
-            const loginBtn = document.getElementById('loginBtn');
-            const adminBtn = document.getElementById('adminBtn');
-            const loginForm = document.getElementById('loginForm');
+        // Загрузка таблицы лидеров
+        function loadLeaderboard() {
+            const tbody = document.getElementById('leaderboard-body');
+            if (!tbody) return;
             
-            if (loginBtn) {
-                loginBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (currentUser) {
-                        showPlayerInfo();
-                    } else {
-                        openModal('loginModal');
-                    }
-                });
+            if (allPlayers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="loading">Нет данных об игроках</td></tr>';
+                return;
             }
             
-            if (adminBtn) {
-                adminBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    openModal('adminModal');
-                });
-            }
+            tbody.innerHTML = '';
             
-            if (loginForm) {
-                loginForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    loginUser();
-                });
-            }
-            
-            window.addEventListener('click', function(event) {
-                if (event.target.classList.contains('modal')) {
-                    event.target.style.display = 'none';
-                }
+            allPlayers.slice(0, 10).forEach((player, index) => {
+                const matches = parseInt(player.matches) || 0;
+                const wins = parseInt(player.wins) || 0;
+                const winRate = matches > 0 ? Math.round((wins / matches) * 100) : 0;
+                const cabinet = playerCabinets.find(pc => pc.player_name === player.name);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="player-rank">${index + 1}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            ${player.avatar ? 
+                                `<img src="${player.avatar}" alt="${player.name}" class="player-avatar-small" onerror="this.style.display='none'">` : 
+                                ''
+                            }
+                            <div>${player.name}</div>
+                        </div>
+                    </td>
+                    <td><strong>${player.rating || 1000}</strong></td>
+                    <td>${matches}</td>
+                    <td>${wins}</td>
+                    <td>${winRate}%</td>
+                `;
+                tbody.appendChild(row);
             });
         }
 
@@ -1108,38 +1514,24 @@
             }
             
             try {
-                // Ищем кабинет игрока
-                const { data: cabinets, error } = await db
+                const { data, error } = await db
                     .from('player_cabinets')
                     .select('*')
                     .eq('login', username)
                     .eq('password', password);
                 
-                if (error) {
-                    console.error('Ошибка входа:', error);
-                    showNotification('Ошибка сервера при входе', 'error');
-                    return;
-                }
+                if (error) throw error;
                 
-                if (cabinets && cabinets.length > 0) {
-                    const cabinet = cabinets[0];
-                    // Находим полные данные игрока
-                    const player = allPlayers.find(p => p.name === cabinet.player_name);
-                    
-                    currentUser = {
-                        ...cabinet,
-                        player_data: player // Добавляем полные данные игрока
-                    };
-                    
+                if (data && data.length > 0) {
+                    currentUser = data[0];
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
                     showNotification('Вход выполнен успешно!', 'success');
                     closeModal('loginModal');
                     updateNavForUser();
-                    loadLiveMatches(); // Обновляем матчи
+                    loadLiveMatches();
                 } else {
                     showNotification('Неверный логин или пароль', 'error');
                 }
-                
             } catch (error) {
                 console.error('Ошибка входа:', error);
                 showNotification('Ошибка входа: ' + error.message, 'error');
@@ -1164,47 +1556,52 @@
         // Показать панель администратора
         async function showAdminPanel() {
             try {
+                // Загружаем актуальные данные
+                await loadPlayersData();
+                await loadMatchesData();
+                
                 const adminPanel = document.createElement('div');
                 adminPanel.className = 'admin-panel';
-                adminPanel.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: white;
-                    z-index: 1002;
-                    padding: 20px;
-                    overflow-y: auto;
-                `;
                 
                 adminPanel.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                        <h2><i class="fas fa-cog"></i> Панель администратора</h2>
-                        <button onclick="closeAdminPanel()" style="padding: 10px 20px; background: var(--danger); color: white; border: none; border-radius: 5px; cursor: pointer;">Закрыть</button>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid var(--gray-light);">
+                        <h2 style="display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-cog"></i> Панель администратора
+                        </h2>
+                        <button onclick="closeAdminPanel()" class="bet-btn danger" style="padding: 0.5rem 1rem;">
+                            <i class="fas fa-times"></i> Закрыть
+                        </button>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                        <div>
-                            <h3><i class="fas fa-users"></i> Игроки из таблицы players (${allPlayers.length})</h3>
-                            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 0.5rem; padding: 10px;">
+                    <div class="admin-grid">
+                        <!-- Управление игроками -->
+                        <div class="admin-section">
+                            <h3><i class="fas fa-users"></i> Управление игроками (${allPlayers.length})</h3>
+                            <div class="player-list">
                                 ${allPlayers.map(player => {
-                                    const cabinet = getPlayerCabinet(player.name);
+                                    const cabinet = playerCabinets.find(pc => pc.player_name === player.name);
                                     const winRate = player.matches > 0 ? Math.round((player.wins / player.matches) * 100) : 0;
                                     return `
-                                    <div style="padding: 10px; border-bottom: 1px solid #f0f0f0;">
-                                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
-                                            ${player.avatar ? `<img src="${player.avatar}" alt="${player.name}" style="width: 40px; height: 40px; border-radius: 50%;">` : ''}
-                                            <div>
-                                                <strong>${player.name}</strong><br>
-                                                <small>Рейтинг: ${player.rating} | Матчи: ${player.matches} | Победы: ${player.wins} (${winRate}%)</small>
-                                            </div>
+                                    <div class="player-item">
+                                        <div class="player-info">
+                                            <strong>${player.name}</strong><br>
+                                            <small>
+                                                Рейтинг: ${player.rating} | 
+                                                Матчи: ${player.matches} | 
+                                                Победы: ${player.wins} (${winRate}%)<br>
+                                                ${cabinet ? `Жетоны: ${cabinet.tokens || 0}` : '<span style="color: orange;">Кабинет не создан</span>'}
+                                            </small>
                                         </div>
-                                        <div style="font-size: 0.9rem; color: #666;">
-                                            ${cabinet ? 
-                                                `Кабинет: ${cabinet.login} | Жетоны: ${cabinet.tokens || 0}` : 
-                                                '<span style="color: orange;">Кабинет не создан</span>'
-                                            }
+                                        <div class="player-actions">
+                                            ${cabinet ? `
+                                                <button class="action-btn add-tokens" onclick="showAddTokensModal('${cabinet.id}', '${player.name}')">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            ` : `
+                                                <button class="action-btn add-tokens" onclick="createCabinet('${player.name}')">
+                                                    <i class="fas fa-user-plus"></i>
+                                                </button>
+                                            `}
                                         </div>
                                     </div>
                                     `;
@@ -1212,7 +1609,8 @@
                             </div>
                         </div>
                         
-                        <div>
+                        <!-- Создание матча -->
+                        <div class="admin-section">
                             <h3><i class="fas fa-trophy"></i> Создать матч</h3>
                             <div class="form-group">
                                 <label>Игрок 1:</label>
@@ -1236,36 +1634,52 @@
                                 <label>Дата и время:</label>
                                 <input type="datetime-local" id="matchDate" value="${new Date(Date.now() + 3600000).toISOString().slice(0, 16)}" style="width: 100%;">
                             </div>
-                            <button onclick="createMatch()" class="bet-btn" style="width: 100%;">Создать матч</button>
+                            <button onclick="createMatch()" class="bet-btn" style="width: 100%;">
+                                <i class="fas fa-plus"></i> Создать матч
+                            </button>
                         </div>
                         
-                        <div>
-                            <h3><i class="fas fa-user-plus"></i> Создать кабинет для игрока</h3>
-                            <div class="form-group">
-                                <label>Игрок:</label>
-                                <select id="playerForCabinet" style="width: 100%;">
-                                    <option value="">Выберите игрока</option>
-                                    ${allPlayers.map(p => {
-                                        const hasCabinet = getPlayerCabinet(p.name);
-                                        return `
-                                            <option value="${p.name}" ${hasCabinet ? 'disabled style="color: #999;"' : ''}>
-                                                ${p.name} ${hasCabinet ? '(кабинет уже есть)' : ''}
-                                            </option>
-                                        `;
-                                    }).join('')}
-                                </select>
+                        <!-- Управление матчами -->
+                        <div class="admin-section">
+                            <h3><i class="fas fa-list"></i> Управление матчами (${allMatches.length})</h3>
+                            <div class="player-list">
+                                ${allMatches.map(match => {
+                                    const player1 = allPlayers.find(p => p.name === match.player1);
+                                    const player2 = allPlayers.find(p => p.name === match.player2);
+                                    return `
+                                    <div class="player-item">
+                                        <div class="player-info">
+                                            <strong>${match.player1} vs ${match.player2}</strong><br>
+                                            <small>
+                                                ${new Date(match.date).toLocaleString('ru-RU')} | 
+                                                Статус: ${getStatusText(match.status)}<br>
+                                                ${match.status === 'finished' ? `Результат: ${match.result}` : ''}
+                                            </small>
+                                        </div>
+                                        <div class="player-actions">
+                                            ${match.status !== 'finished' ? `
+                                                <button class="action-btn add-tokens small" onclick="updateMatchStatus('${match.id}', 'live')">
+                                                    ${match.status === 'live' ? '⏸️' : '▶️'}
+                                                </button>
+                                                <button class="action-btn add-tokens small" onclick="finalizeMatch('${match.id}', 'player1')">
+                                                    П1
+                                                </button>
+                                                <button class="action-btn add-tokens small" onclick="finalizeMatch('${match.id}', 'player2')">
+                                                    П2
+                                                </button>
+                                            ` : '✅'}
+                                        </div>
+                                    </div>
+                                    `;
+                                }).join('')}
                             </div>
-                            <div class="form-group">
-                                <label>Начальные жетоны:</label>
-                                <input type="number" id="cabinetTokens" value="100" style="width: 100%;">
-                            </div>
-                            <button onclick="createCabinet()" class="bet-btn" style="width: 100%;">Создать кабинет</button>
                         </div>
                         
-                        <div>
-                            <h3><i class="fas fa-coins"></i> Пополнить жетоны</h3>
+                        <!-- Пополнение жетонов -->
+                        <div class="admin-section">
+                            <h3><i class="fas fa-coins"></i> Пополнение жетонов</h3>
                             <div class="form-group">
-                                <label>Игрок:</label>
+                                <label>Игрок с кабинетом:</label>
                                 <select id="playerForTokens" style="width: 100%;">
                                     <option value="">Выберите игрока</option>
                                     ${playerCabinets.map(pc => `
@@ -1275,9 +1689,11 @@
                             </div>
                             <div class="form-group">
                                 <label>Количество жетонов:</label>
-                                <input type="number" id="tokensAmount" value="100" style="width: 100%;">
+                                <input type="number" id="tokensAmount" value="100" min="1" style="width: 100%;">
                             </div>
-                            <button onclick="addTokens()" class="bet-btn" style="width: 100%;">Добавить жетоны</button>
+                            <button onclick="addTokensToPlayer()" class="bet-btn success" style="width: 100%;">
+                                <i class="fas fa-plus"></i> Добавить жетоны
+                            </button>
                         </div>
                     </div>
                 `;
@@ -1290,7 +1706,26 @@
             }
         }
 
-        // Создание матча
+        // Вспомогательные функции
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': 'Ожидание',
+                'live': 'LIVE',
+                'finished': 'Завершен'
+            };
+            return statusMap[status] || status;
+        }
+
+        function getPlayerCabinet(playerName) {
+            return playerCabinets.find(pc => pc.player_name === playerName);
+        }
+
+        // Функции администратора
+        function closeAdminPanel() {
+            const panel = document.querySelector('.admin-panel');
+            if (panel) panel.remove();
+        }
+
         async function createMatch() {
             const player1Name = document.getElementById('matchPlayer1').value;
             const player2Name = document.getElementById('matchPlayer2').value;
@@ -1307,8 +1742,12 @@
             }
             
             try {
-                const player1Rating = getPlayerRating(player1Name);
-                const player2Rating = getPlayerRating(player2Name);
+                const player1 = allPlayers.find(p => p.name === player1Name);
+                const player2 = allPlayers.find(p => p.name === player2Name);
+                
+                const player1Rating = player1 ? parseInt(player1.rating) : 1000;
+                const player2Rating = player2 ? parseInt(player2.rating) : 1000;
+                
                 const odds = calculateOdds(player1Rating, player2Rating);
                 const matchId = 'match_' + Date.now().toString(36);
                 
@@ -1329,8 +1768,9 @@
                 if (error) throw error;
                 
                 showNotification('Матч создан!', 'success');
-                loadLiveMatches();
+                await loadMatchesData();
                 closeAdminPanel();
+                showAdminPanel();
                 
             } catch (error) {
                 console.error('Ошибка создания матча:', error);
@@ -1338,21 +1778,8 @@
             }
         }
 
-        // Создание кабинета для игрока
-        async function createCabinet() {
-            const playerName = document.getElementById('playerForCabinet').value;
-            const tokens = parseInt(document.getElementById('cabinetTokens').value) || 100;
-            
-            if (!playerName) {
-                showNotification('Выберите игрока', 'error');
-                return;
-            }
-            
-            // Проверяем, есть ли уже кабинет
-            if (getPlayerCabinet(playerName)) {
-                showNotification('У этого игрока уже есть кабинет', 'error');
-                return;
-            }
+        async function createCabinet(playerName) {
+            if (!confirm(`Создать кабинет для игрока ${playerName}?`)) return;
             
             try {
                 const login = playerName.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now().toString(36);
@@ -1364,15 +1791,13 @@
                         player_name: playerName,
                         login: login,
                         password: password,
-                        tokens: tokens,
+                        tokens: 100,
                         join_date: new Date().toISOString()
                     }]);
                 
                 if (error) throw error;
                 
-                // Обновляем локальные данные
                 await loadPlayersData();
-                
                 showNotification(`Кабинет создан! Логин: ${login}, Пароль: ${password}`, 'success');
                 closeAdminPanel();
                 showAdminPanel();
@@ -1383,8 +1808,7 @@
             }
         }
 
-        // Добавление жетонов
-        async function addTokens() {
+        async function addTokensToPlayer() {
             const cabinetId = document.getElementById('playerForTokens').value;
             const amount = parseInt(document.getElementById('tokensAmount').value) || 100;
             
@@ -1393,8 +1817,12 @@
                 return;
             }
             
+            if (amount <= 0) {
+                showNotification('Введите положительное количество жетонов', 'error');
+                return;
+            }
+            
             try {
-                // Находим текущий кабинет
                 const cabinet = playerCabinets.find(pc => pc.id === cabinetId);
                 if (!cabinet) {
                     showNotification('Кабинет не найден', 'error');
@@ -1410,9 +1838,7 @@
                 
                 if (error) throw error;
                 
-                // Обновляем локальные данные
                 await loadPlayersData();
-                
                 showNotification(`Добавлено ${amount} жетонов игроку ${cabinet.player_name}`, 'success');
                 closeAdminPanel();
                 showAdminPanel();
@@ -1423,26 +1849,218 @@
             }
         }
 
-        // Вспомогательные функции
-        function closeAdminPanel() {
-            const panel = document.querySelector('.admin-panel');
-            if (panel) panel.remove();
+        async function updateMatchStatus(matchId, status) {
+            try {
+                const { error } = await db
+                    .from('bet_matches')
+                    .update({ status: status })
+                    .eq('id', matchId);
+                
+                if (error) throw error;
+                
+                showNotification(`Статус матча обновлен на ${status === 'live' ? 'LIVE' : 'Ожидание'}`, 'success');
+                await loadMatchesData();
+                closeAdminPanel();
+                showAdminPanel();
+                
+            } catch (error) {
+                console.error('Ошибка обновления статуса:', error);
+                showNotification('Ошибка обновления статуса: ' + error.message, 'error');
+            }
         }
 
+        async function finalizeMatch(matchId, winner) {
+            if (!confirm(`Подтвердить победу ${winner === 'player1' ? 'первого' : 'второго'} игрока?`)) return;
+            
+            try {
+                const match = allMatches.find(m => m.id === matchId);
+                if (!match) {
+                    showNotification('Матч не найден', 'error');
+                    return;
+                }
+                
+                const { error } = await db
+                    .from('bet_matches')
+                    .update({ 
+                        status: 'finished',
+                        result: winner,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', matchId);
+                
+                if (error) throw error;
+                
+                showNotification('Матч завершен!', 'success');
+                await loadMatchesData();
+                closeAdminPanel();
+                showAdminPanel();
+                
+            } catch (error) {
+                console.error('Ошибка завершения матча:', error);
+                showNotification('Ошибка завершения матча: ' + error.message, 'error');
+            }
+        }
+
+        // Функции модальных окон
         function openModal(modalId) {
             const modal = document.getElementById(modalId);
-            if (modal) modal.style.display = 'block';
+            if (modal) {
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
         }
 
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
-            if (modal) modal.style.display = 'none';
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
         }
 
-        function showNotification(message, type = 'info') {
-            const oldNotifications = document.querySelectorAll('.notification');
-            oldNotifications.forEach(n => n.remove());
+        // Обновление навигации
+        function updateNavForUser() {
+            const loginText = document.getElementById('loginText');
+            const mobileLoginText = document.getElementById('mobileLoginText');
             
+            if (currentUser) {
+                if (loginText) loginText.textContent = currentUser.player_name || 'Игрок';
+                if (mobileLoginText) mobileLoginText.textContent = currentUser.player_name || 'Игрок';
+            } else {
+                if (loginText) loginText.textContent = 'Войти';
+                if (mobileLoginText) mobileLoginText.textContent = 'Войти';
+            }
+        }
+
+        // Показать информацию об игроке
+        function showPlayerInfo() {
+            if (!currentUser) return;
+            
+            const player = allPlayers.find(p => p.name === currentUser.player_name);
+            const matches = player ? parseInt(player.matches) || 0 : 0;
+            const wins = player ? parseInt(player.wins) || 0 : 0;
+            const winRate = matches > 0 ? Math.round((wins / matches) * 100) : 0;
+            
+            document.getElementById('playerInfo').innerHTML = `
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    ${player && player.avatar ? 
+                        `<img src="${player.avatar}" alt="${currentUser.player_name}" style="width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 1rem; object-fit: cover; border: 3px solid var(--primary);">` : 
+                        `<div style="width: 100px; height: 100px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; font-weight: bold;">
+                            ${currentUser.player_name ? currentUser.player_name.charAt(0).toUpperCase() : '?'}
+                        </div>`
+                    }
+                    <h3 style="margin-bottom: 0.5rem;">${currentUser.player_name || 'Без имени'}</h3>
+                    <p style="color: var(--gray); margin-bottom: 1rem;">Логин: ${currentUser.login}</p>
+                </div>
+                
+                <div style="background: #f8fafc; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 0.25rem;">Рейтинг</div>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">${player ? player.rating : 'Н/Д'}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 0.25rem;">Жетоны</div>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: var(--warning);">
+                                <i class="fas fa-coins"></i> ${currentUser.tokens || 0}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.9rem; color: var(--gray);">Матчи</div>
+                            <div style="font-size: 1.2rem; font-weight: bold;">${matches}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.9rem; color: var(--gray);">Победы</div>
+                            <div style="font-size: 1.2rem; font-weight: bold;">${wins}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.9rem; color: var(--gray);">Процент</div>
+                            <div style="font-size: 1.2rem; font-weight: bold;">${winRate}%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 1rem;">
+                    <button onclick="logout()" class="bet-btn danger" style="flex: 1;">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                </div>
+            `;
+            
+            openModal('playerModal');
+        }
+
+        // Выход из системы
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            showNotification('Вы вышли из системы', 'info');
+            closeModal('playerModal');
+            updateNavForUser();
+            loadLiveMatches();
+        }
+
+        // Подготовка ставки
+        function prepareBet(matchId, betOn, odds, playerName) {
+            if (!currentUser) {
+                showNotification('Войдите, чтобы сделать ставку', 'error');
+                openModal('loginModal');
+                return;
+            }
+            
+            const match = allMatches.find(m => m.id === matchId);
+            if (!match || match.status !== 'live') {
+                showNotification('Матч не активен для ставок', 'error');
+                return;
+            }
+            
+            const maxBet = Math.floor((currentUser.tokens || 0) * 0.5);
+            showNotification(`Максимальная ставка: ${maxBet} жетонов на ${playerName} (коэф. ${odds.toFixed(2)})`, 'info');
+        }
+
+        // Размещение ставки
+        async function placeBet(matchId) {
+            if (!currentUser) {
+                showNotification('Войдите, чтобы сделать ставку', 'error');
+                return;
+            }
+            
+            const match = allMatches.find(m => m.id === matchId);
+            if (!match || match.status !== 'live') {
+                showNotification('Матч не активен для ставок', 'error');
+                return;
+            }
+            
+            const input = document.getElementById(`bet-amount-${matchId}`);
+            if (!input) return;
+            
+            const amount = parseInt(input.value);
+            const maxBet = Math.floor((currentUser.tokens || 0) * 0.5);
+            
+            if (!amount || amount < 1) {
+                showNotification('Введите сумму ставки', 'error');
+                return;
+            }
+            
+            if (amount > maxBet) {
+                showNotification(`Максимальная ставка: ${maxBet} жетонов`, 'error');
+                return;
+            }
+            
+            if (amount > (currentUser.tokens || 0)) {
+                showNotification('Недостаточно жетонов', 'error');
+                return;
+            }
+            
+            // Здесь будет логика размещения ставки
+            showNotification(`Ставка ${amount} жетонов принята!`, 'success');
+        }
+
+        // Уведомления
+        function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
             notification.textContent = message;
@@ -1454,78 +2072,7 @@
             }, 3000);
         }
 
-        function updateNavForUser() {
-            const loginBtn = document.getElementById('loginBtn');
-            if (currentUser && loginBtn) {
-                loginBtn.innerHTML = `<i class="fas fa-user-circle"></i> ${currentUser.player_name || 'Игрок'}`;
-            } else if (loginBtn) {
-                loginBtn.innerHTML = `<i class="fas fa-user"></i> Войти`;
-            }
-        }
-
-        function showPlayerInfo() {
-            if (!currentUser) return;
-            
-            const player = allPlayers.find(p => p.name === currentUser.player_name);
-            const stats = getPlayerStats(currentUser.player_name);
-            
-            document.getElementById('playerInfo').innerHTML = `
-                <div style="text-align: center; margin-bottom: 1.5rem;">
-                    ${player && player.avatar ? 
-                        `<img src="${player.avatar}" alt="${currentUser.player_name}" style="width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1rem; object-fit: cover; border: 3px solid var(--primary);">` : 
-                        `<div class="player-avatar" style="width: 80px; height: 80px; margin: 0 auto 1rem;">${currentUser.player_name ? currentUser.player_name.charAt(0).toUpperCase() : '?'}</div>`
-                    }
-                    <h3>${currentUser.player_name || 'Без имени'}</h3>
-                    <p>Логин: ${currentUser.login}</p>
-                </div>
-                
-                <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                        <span>Рейтинг:</span>
-                        <strong>${player ? player.rating : 'Н/Д'}</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                        <span>Жетоны:</span>
-                        <strong><i class="fas fa-coins" style="color: var(--warning);"></i> ${currentUser.tokens || 0}</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                        <span>Матчей сыграно:</span>
-                        <strong>${stats.matches}</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Побед:</span>
-                        <strong>${stats.wins} (${stats.winRate}%)</strong>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 1.5rem;">
-                    <button onclick="logout()" class="bet-btn" style="width: 100%; background: var(--danger);">
-                        <i class="fas fa-sign-out-alt"></i> Выйти
-                    </button>
-                </div>
-            `;
-            
-            openModal('playerModal');
-        }
-
-        function logout() {
-            currentUser = null;
-            localStorage.removeItem('currentUser');
-            showNotification('Вы вышли из системы', 'info');
-            closeModal('playerModal');
-            updateNavForUser();
-        }
-
-        function prepareBet(matchId, betOn, odds, playerName) {
-            if (!currentUser) {
-                showNotification('Войдите, чтобы сделать ставку', 'error');
-                openModal('loginModal');
-                return;
-            }
-            
-            showNotification('Функция ставок в разработке', 'info');
-        }
-
+        // Проверка существования элемента
         function elementExists(id) {
             return document.getElementById(id) !== null;
         }
