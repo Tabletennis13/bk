@@ -6,6 +6,9 @@
     <title>Лига ставок на настольный теннис</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* [ВСЕ СТИЛИ ОСТАЮТСЯ ТАКИМИ ЖЕ, КАК ВЫШЕ] */
+        /* Полный CSS стиль из предыдущего ответа */
+        
         :root {
             --primary: #2563eb;
             --primary-dark: #1d4ed8;
@@ -783,12 +786,12 @@
     </footer>
 
     <script>
-        // Конфигурация Supabase
+        // Конфигурация Supabase - используем другую переменную
         const SUPABASE_URL = 'https://bqycjfcjtdawyrysgrbw.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxeWNqZmNqdGRhd3lyeXNncmJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MDE5NzAsImV4cCI6MjA4MjE3Nzk3MH0.LEOUMFAd1cz_1e4uawJcaZLPCMqAQHEWM52Oy7fDjsE';
 
-        // Инициализация Supabase
-        let supabase;
+        // Используем другое имя для клиента Supabase
+        let supabaseClient;
         
         // Глобальные переменные
         let currentUser = null;
@@ -797,8 +800,8 @@
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            // Инициализируем Supabase
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            // Инициализируем Supabase с другим именем
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
             // Проверяем, есть ли сохраненный пользователь
             const savedUser = localStorage.getItem('currentUser');
@@ -860,18 +863,18 @@
         async function updateStats() {
             try {
                 // Получаем количество игроков
-                const { count: playersCount } = await supabase
+                const { count: playersCount } = await supabaseClient
                     .from('player_cabinets')
                     .select('*', { count: 'exact', head: true });
                 
                 // Получаем LIVE матчи
-                const { count: liveMatchesCount } = await supabase
+                const { count: liveMatchesCount } = await supabaseClient
                     .from('bet_matches')
                     .select('*', { count: 'exact', head: true })
                     .eq('status', 'live');
                 
                 // Получаем общее количество жетонов
-                const { data: players } = await supabase
+                const { data: players } = await supabaseClient
                     .from('player_cabinets')
                     .select('tokens');
                 
@@ -893,7 +896,7 @@
                 const grid = document.getElementById('live-matches-grid');
                 grid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка матчей...</div>';
                 
-                const { data: matches, error } = await supabase
+                const { data: matches, error } = await supabaseClient
                     .from('bet_matches')
                     .select('*')
                     .in('status', ['live', 'pending'])
@@ -1002,7 +1005,7 @@
                 const tbody = document.getElementById('leaderboard-body');
                 tbody.innerHTML = '<tr><td colspan="6" class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка...</td></tr>';
                 
-                const { data: players, error } = await supabase
+                const { data: players, error } = await supabaseClient
                     .from('player_cabinets')
                     .select('*')
                     .order('tokens', { ascending: false })
@@ -1055,7 +1058,7 @@
             }
             
             try {
-                const { data: players, error } = await supabase
+                const { data: players, error } = await supabaseClient
                     .from('player_cabinets')
                     .select('*')
                     .eq('login', username)
@@ -1111,7 +1114,7 @@
         // Показать информацию об игроке
         async function showPlayerInfo() {
             try {
-                const { data: player, error } = await supabase
+                const { data: player, error } = await supabaseClient
                     .from('player_cabinets')
                     .select('*')
                     .eq('id', currentUser.id)
@@ -1227,7 +1230,7 @@
             
             try {
                 // Получаем информацию о матче
-                const { data: match, error: matchError } = await supabase
+                const { data: match, error: matchError } = await supabaseClient
                     .from('bet_matches')
                     .select('*')
                     .eq('id', currentBet.matchId)
@@ -1244,7 +1247,7 @@
                 const betId = 'bet_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 const potentialWin = Math.floor(amount * currentBet.odds);
                 
-                const { error: betError } = await supabase
+                const { error: betError } = await supabaseClient
                     .from('bet_history')
                     .insert([{
                         id: betId,
@@ -1263,7 +1266,7 @@
                 
                 // Обновляем баланс игрока
                 const newTokens = currentUser.tokens - amount;
-                const { error: updateError } = await supabase
+                const { error: updateError } = await supabaseClient
                     .from('player_cabinets')
                     .update({ tokens: newTokens })
                     .eq('id', currentUser.id);
@@ -1275,7 +1278,7 @@
                 const newTotalBets = (match.total_bets || 0) + 1;
                 const newTotalAmount = (match.total_amount || 0) + amount;
                 
-                await supabase
+                await supabaseClient
                     .from('bet_matches')
                     .update({
                         bets: newBets,
@@ -1311,8 +1314,8 @@
             try {
                 // Загружаем данные для админки
                 const [playersData, matchesData] = await Promise.all([
-                    supabase.from('player_cabinets').select('*').order('player_name'),
-                    supabase.from('bet_matches').select('*').order('date', { ascending: false })
+                    supabaseClient.from('player_cabinets').select('*').order('player_name'),
+                    supabaseClient.from('bet_matches').select('*').order('date', { ascending: false })
                 ]);
                 
                 const players = playersData.data || [];
@@ -1455,7 +1458,7 @@
                 const login = name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now().toString(36);
                 const password = Math.random().toString(36).slice(-8);
                 
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('player_cabinets')
                     .insert([{
                         player_name: name,
@@ -1489,7 +1492,7 @@
         async function addTokens(playerId, amount) {
             try {
                 // Получаем текущие данные игрока
-                const { data: player, error: getError } = await supabase
+                const { data: player, error: getError } = await supabaseClient
                     .from('player_cabinets')
                     .select('tokens')
                     .eq('id', playerId)
@@ -1499,7 +1502,7 @@
                 
                 const newTokens = (player.tokens || 0) + amount;
                 
-                const { error: updateError } = await supabase
+                const { error: updateError } = await supabaseClient
                     .from('player_cabinets')
                     .update({ tokens: newTokens })
                     .eq('id', playerId);
@@ -1530,7 +1533,7 @@
             }
             
             try {
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('player_cabinets')
                     .delete()
                     .eq('id', playerId);
@@ -1573,8 +1576,8 @@
             try {
                 // Получаем данные игроков
                 const [player1Data, player2Data] = await Promise.all([
-                    supabase.from('player_cabinets').select('rating').eq('player_name', player1Name).single(),
-                    supabase.from('player_cabinets').select('rating').eq('player_name', player2Name).single()
+                    supabaseClient.from('player_cabinets').select('rating').eq('player_name', player1Name).single(),
+                    supabaseClient.from('player_cabinets').select('rating').eq('player_name', player2Name).single()
                 ]);
                 
                 const player1Rating = player1Data.data?.rating || 1000;
@@ -1584,7 +1587,7 @@
                 const odds = calculateOdds(player1Rating, player2Rating);
                 const matchId = 'match_' + Date.now().toString(36);
                 
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('bet_matches')
                     .insert([{
                         id: matchId,
@@ -1617,7 +1620,7 @@
 
         async function updateMatchStatus(matchId, status) {
             try {
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('bet_matches')
                     .update({ 
                         status: status,
@@ -1652,7 +1655,7 @@
             
             try {
                 // Обновляем матч
-                const { error: matchError } = await supabase
+                const { error: matchError } = await supabaseClient
                     .from('bet_matches')
                     .update({ 
                         status: 'finished',
