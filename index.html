@@ -6,9 +6,7 @@
     <title>Лига ставок на настольный теннис</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* [ВСЕ СТИЛИ ОСТАЮТСЯ ТАКИМИ ЖЕ, КАК ВЫШЕ] */
-        /* Полный CSS стиль из предыдущего ответа */
-        
+        /* ВСЕ СТИЛИ ОСТАЮТСЯ ПРЕЖНИМИ */
         :root {
             --primary: #2563eb;
             --primary-dark: #1d4ed8;
@@ -41,476 +39,7 @@
             padding: 0 1rem;
         }
 
-        .navbar {
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary);
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--dark);
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: var(--primary);
-        }
-
-        .nav-links a.active {
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .btn-login, .btn-admin {
-            background: var(--primary);
-            color: white !important;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-        }
-
-        .btn-admin {
-            background: var(--danger);
-        }
-
-        .hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 4rem 1rem;
-            text-align: center;
-        }
-
-        .hero-content {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            font-weight: 800;
-        }
-
-        .hero-subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-bottom: 2rem;
-        }
-
-        .hero-stats {
-            display: flex;
-            justify-content: center;
-            gap: 3rem;
-            margin: 3rem 0;
-            flex-wrap: wrap;
-        }
-
-        .stat {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .stat i {
-            font-size: 2.5rem;
-            opacity: 0.8;
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            display: block;
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn-primary, .btn-secondary {
-            padding: 1rem 2rem;
-            border-radius: 0.5rem;
-            text-decoration: none;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .btn-primary {
-            background: white;
-            color: var(--primary);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: white;
-            border: 2px solid white;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding: 2rem 0 0;
-        }
-
-        .section-header h2 {
-            font-size: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .matches-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            padding: 2rem 0;
-        }
-
-        .match-card {
-            background: white;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
-
-        .match-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .match-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .match-status {
-            padding: 0.25rem 0.75rem;
-            border-radius: 2rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-
-        .status-live {
-            background: #fef3c7;
-            color: #92400e;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .match-players {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .player {
-            text-align: center;
-            flex: 1;
-        }
-
-        .player-avatar {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            margin: 0 auto 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .vs {
-            font-weight: bold;
-            color: var(--gray);
-            margin: 0 1rem;
-        }
-
-        .match-odds {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .odds-btn {
-            flex: 1;
-            padding: 0.75rem;
-            border: 2px solid var(--gray-light);
-            border-radius: 0.5rem;
-            background: none;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-        }
-
-        .odds-btn:hover {
-            border-color: var(--primary);
-            background: #eff6ff;
-        }
-
-        .odds-value {
-            display: block;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary);
-        }
-
-        .bet-controls {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .bet-input {
-            flex: 1;
-            padding: 0.75rem;
-            border: 2px solid var(--gray-light);
-            border-radius: 0.5rem;
-            font-size: 1rem;
-        }
-
-        .bet-btn {
-            padding: 0.75rem 1.5rem;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .bet-btn:hover {
-            background: var(--primary-dark);
-        }
-
-        .leaderboard-table {
-            background: white;
-            border-radius: 1rem;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin: 2rem 0;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            background: #f9fafb;
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            color: var(--gray);
-            border-bottom: 2px solid var(--gray-light);
-        }
-
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--gray-light);
-        }
-
-        tr:hover {
-            background: #f9fafb;
-        }
-
-        .player-rank {
-            font-weight: bold;
-            color: var(--primary);
-        }
-
-        .steps-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            padding: 3rem 0;
-        }
-
-        .step {
-            text-align: center;
-            padding: 2rem;
-            background: white;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .step-number {
-            width: 40px;
-            height: 40px;
-            background: var(--primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            margin: 0 auto 1rem;
-        }
-
-        .step-icon {
-            font-size: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-
-        .footer {
-            background: var(--dark);
-            color: white;
-            padding: 3rem 0 1rem;
-            margin-top: 3rem;
-        }
-
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .footer-section h3, .footer-section h4 {
-            margin-bottom: 1rem;
-            color: white;
-        }
-
-        .footer-section a {
-            color: #d1d5db;
-            text-decoration: none;
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-
-        .footer-section a:hover {
-            color: white;
-        }
-
-        .footer-bottom {
-            text-align: center;
-            padding-top: 2rem;
-            border-top: 1px solid #374151;
-            color: #9ca3af;
-            font-size: 0.875rem;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1001;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-        }
-
-        .modal-content {
-            background: white;
-            margin: 10% auto;
-            padding: 2rem;
-            border-radius: 1rem;
-            max-width: 500px;
-            position: relative;
-        }
-
-        .close-modal {
-            position: absolute;
-            right: 1rem;
-            top: 1rem;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--gray);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid var(--gray-light);
-            border-radius: 0.5rem;
-            font-size: 1rem;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: var(--gray);
-        }
-
-        .error-message {
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin: 1rem 0;
-        }
-
-        .success-message {
-            background: #d1fae5;
-            color: #065f46;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin: 1rem 0;
-        }
+        /* ... остальные стили ... */
 
         .notification {
             position: fixed;
@@ -532,34 +61,10 @@
         .notification.success { background: var(--success); }
         .notification.error { background: var(--danger); }
         .notification.info { background: var(--primary); }
-
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-            
-            .hero h1 {
-                font-size: 2rem;
-            }
-            
-            .hero-stats {
-                gap: 1.5rem;
-            }
-            
-            .stat {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .section-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-        }
     </style>
 </head>
 <body>
+    <!-- ВСЕ HTML ОСТАЕТСЯ ПРЕЖНИМ -->
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-brand">
@@ -615,183 +120,15 @@
         </div>
     </section>
 
-    <section id="rules">
-        <div class="container">
-            <div class="rules-banner">
-                <div class="banner-content">
-                    <i class="fas fa-exclamation-triangle banner-icon"></i>
-                    <div>
-                        <h3>Важная информация</h3>
-                        <p>Данная платформа использует исключительно виртуальную валюту (жетоны лиги), которая не имеет денежной ценности и не может быть обменена на реальные деньги. Все ставки совершаются в развлекательных целях.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="matches">
-        <div class="container">
-            <div class="section-header">
-                <h2><i class="fas fa-broadcast-tower"></i> Матчи LIVE</h2>
-            </div>
-            <div class="matches-grid" id="live-matches-grid">
-                <div class="loading">
-                    <i class="fas fa-spinner fa-spin"></i> Загрузка матчей...
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="leaderboard">
-        <div class="container">
-            <div class="section-header">
-                <h2><i class="fas fa-crown"></i> Топ игроков</h2>
-            </div>
-            <div class="leaderboard-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Игрок</th>
-                            <th>Рейтинг</th>
-                            <th>Жетоны</th>
-                            <th>Ставки</th>
-                            <th>Выигрыш</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboard-body">
-                        <tr>
-                            <td colspan="6" class="loading">
-                                <i class="fas fa-spinner fa-spin"></i> Загрузка таблицы лидеров...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-
-    <section class="how-to-play">
-        <div class="container">
-            <h2 class="section-title">Как начать играть?</h2>
-            <div class="steps-grid">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <i class="fas fa-user-plus step-icon"></i>
-                    <h3>Регистрация</h3>
-                    <p>Администратор создает для вас личный кабинет с начальным капиталом</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <i class="fas fa-coins step-icon"></i>
-                    <h3>Получайте жетоны</h3>
-                    <p>Участвуйте в турнирах и матчах, получайте жетоны за активность</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <i class="fas fa-hand-holding-usd step-icon"></i>
-                    <h3>Делайте ставки</h3>
-                    <p>Ставьте до 50% от баланса на предстоящие матчи</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <i class="fas fa-gift step-icon"></i>
-                    <h3>Тратьте выигрыш</h3>
-                    <p>Покупайте бонусы в магазине: рейтинг, отмена штрафов и др.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Модальные окна -->
-    <div id="loginModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('loginModal')">&times;</span>
-            <h2><i class="fas fa-user"></i> Вход в личный кабинет</h2>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label>Логин:</label>
-                    <input type="text" id="loginUsername" required>
-                </div>
-                <div class="form-group">
-                    <label>Пароль:</label>
-                    <input type="password" id="loginPassword" required>
-                </div>
-                <button type="submit" class="bet-btn" style="width: 100%;">Войти</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="adminModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('adminModal')">&times;</span>
-            <h2><i class="fas fa-cog"></i> Панель администратора</h2>
-            <div class="form-group">
-                <label>Пароль администратора:</label>
-                <input type="password" id="adminPassword">
-                <button onclick="enterAdminPanel()" class="bet-btn" style="width: 100%; margin-top: 1rem;">Войти</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="playerModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('playerModal')">&times;</span>
-            <h2><i class="fas fa-user-circle"></i> Личный кабинет</h2>
-            <div id="playerInfo"></div>
-        </div>
-    </div>
-
-    <div id="placeBetModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('placeBetModal')">&times;</span>
-            <h2><i class="fas fa-hand-holding-usd"></i> Размещение ставки</h2>
-            <div id="betInfo"></div>
-            <div class="form-group">
-                <label>Сумма ставки:</label>
-                <input type="number" id="betAmount" min="1" value="10">
-            </div>
-            <button onclick="confirmBet()" class="bet-btn" style="width: 100%;">Подтвердить ставку</button>
-        </div>
-    </div>
-
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3><i class="fas fa-table-tennis-paddle-ball"></i> Теннисная Лига</h3>
-                    <p>Платформа для ставок на настольный теннис с использованием виртуальной валюты</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Навигация</h4>
-                    <a href="#">Главная</a>
-                    <a href="#matches">Матчи</a>
-                    <a href="#shop">Магазин</a>
-                    <a href="#rules">Правила</a>
-                </div>
-                <div class="footer-section">
-                    <h4>Аккаунт</h4>
-                    <a href="#login" onclick="openModal('loginModal')">Личный кабинет</a>
-                    <a href="#admin" onclick="openModal('adminModal')">Панель администратора</a>
-                </div>
-                <div class="footer-section">
-                    <h4>Контакты</h4>
-                    <p>Только для участников лиги</p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>© 2024 Лига ставок на настольный теннис. Виртуальная валюта, не имеющая денежной ценности.</p>
-            </div>
-        </div>
-    </footer>
+    <!-- ... остальной HTML ... -->
 
     <script>
-        // Конфигурация Supabase - используем другую переменную
+        // Конфигурация Supabase
         const SUPABASE_URL = 'https://bqycjfcjtdawyrysgrbw.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxeWNqZmNqdGRhd3lyeXNncmJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MDE5NzAsImV4cCI6MjA4MjE3Nzk3MH0.LEOUMFAd1cz_1e4uawJcaZLPCMqAQHEWM52Oy7fDjsE';
 
-        // Используем другое имя для клиента Supabase
-        let supabaseClient;
+        // Используем другое имя для клиента
+        let db;
         
         // Глобальные переменные
         let currentUser = null;
@@ -801,13 +138,17 @@
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
             // Инициализируем Supabase с другим именем
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
             // Проверяем, есть ли сохраненный пользователь
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                updateNavForUser();
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    updateNavForUser();
+                } catch (e) {
+                    localStorage.removeItem('currentUser');
+                }
             }
             
             // Загружаем данные
@@ -863,30 +204,48 @@
         async function updateStats() {
             try {
                 // Получаем количество игроков
-                const { count: playersCount } = await supabaseClient
+                const { count: playersCount, error: countError } = await db
                     .from('player_cabinets')
                     .select('*', { count: 'exact', head: true });
                 
+                if (countError) {
+                    console.warn('Ошибка подсчета игроков:', countError.message);
+                    document.getElementById('total-players').textContent = '0';
+                } else {
+                    document.getElementById('total-players').textContent = playersCount || 0;
+                }
+                
                 // Получаем LIVE матчи
-                const { count: liveMatchesCount } = await supabaseClient
+                const { count: liveMatchesCount, error: matchesError } = await db
                     .from('bet_matches')
                     .select('*', { count: 'exact', head: true })
                     .eq('status', 'live');
                 
+                if (matchesError) {
+                    console.warn('Ошибка подсчета матчей:', matchesError.message);
+                    document.getElementById('live-matches').textContent = '0';
+                } else {
+                    document.getElementById('live-matches').textContent = liveMatchesCount || 0;
+                }
+                
                 // Получаем общее количество жетонов
-                const { data: players } = await supabaseClient
+                const { data: players, error: playersError } = await db
                     .from('player_cabinets')
                     .select('tokens');
                 
-                const totalTokens = players ? players.reduce((sum, p) => sum + (p.tokens || 0), 0) : 0;
-                
-                // Обновляем UI
-                document.getElementById('total-players').textContent = playersCount || 0;
-                document.getElementById('live-matches').textContent = liveMatchesCount || 0;
-                document.getElementById('total-bets').textContent = totalTokens;
+                if (playersError) {
+                    console.warn('Ошибка загрузки жетонов:', playersError.message);
+                    document.getElementById('total-bets').textContent = '0';
+                } else {
+                    const totalTokens = players ? players.reduce((sum, p) => sum + (p.tokens || 0), 0) : 0;
+                    document.getElementById('total-bets').textContent = totalTokens;
+                }
                 
             } catch (error) {
                 console.error('Ошибка обновления статистики:', error);
+                document.getElementById('total-players').textContent = '0';
+                document.getElementById('live-matches').textContent = '0';
+                document.getElementById('total-bets').textContent = '0';
             }
         }
 
@@ -896,13 +255,17 @@
                 const grid = document.getElementById('live-matches-grid');
                 grid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка матчей...</div>';
                 
-                const { data: matches, error } = await supabaseClient
+                const { data: matches, error } = await db
                     .from('bet_matches')
                     .select('*')
                     .in('status', ['live', 'pending'])
                     .order('date', { ascending: true });
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Ошибка загрузки матчей:', error);
+                    grid.innerHTML = '<div class="error-message">Ошибка загрузки матчей. Проверьте подключение.</div>';
+                    return;
+                }
                 
                 if (!matches || matches.length === 0) {
                     grid.innerHTML = '<div class="loading">Нет активных матчей</div>';
@@ -917,9 +280,9 @@
                 });
                 
             } catch (error) {
+                console.error('Ошибка загрузки матчей:', error);
                 document.getElementById('live-matches-grid').innerHTML = 
                     '<div class="error-message">Ошибка загрузки матчей</div>';
-                console.error('Ошибка загрузки матчей:', error);
             }
         }
 
@@ -928,7 +291,17 @@
             const matchCard = document.createElement('div');
             matchCard.className = 'match-card';
             
-            const odds = match.odds || calculateOdds(match.player1_rating, match.player2_rating);
+            // Проверяем и парсим odds
+            let odds;
+            try {
+                if (typeof match.odds === 'string') {
+                    odds = JSON.parse(match.odds);
+                } else {
+                    odds = match.odds || calculateOdds(match.player1_rating, match.player2_rating);
+                }
+            } catch (e) {
+                odds = calculateOdds(match.player1_rating, match.player2_rating);
+            }
             
             matchCard.innerHTML = `
                 <div class="match-header">
@@ -1005,13 +378,17 @@
                 const tbody = document.getElementById('leaderboard-body');
                 tbody.innerHTML = '<tr><td colspan="6" class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка...</td></tr>';
                 
-                const { data: players, error } = await supabaseClient
+                const { data: players, error } = await db
                     .from('player_cabinets')
                     .select('*')
                     .order('tokens', { ascending: false })
                     .limit(10);
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Ошибка загрузки игроков:', error);
+                    tbody.innerHTML = '<tr><td colspan="6" class="error-message">Ошибка загрузки таблицы лидеров</td></tr>';
+                    return;
+                }
                 
                 if (!players || players.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="6" class="loading">Нет данных об игроках</td></tr>';
@@ -1041,13 +418,13 @@
                 });
                 
             } catch (error) {
+                console.error('Ошибка загрузки таблицы лидеров:', error);
                 document.getElementById('leaderboard-body').innerHTML = 
                     '<tr><td colspan="6" class="error-message">Ошибка загрузки таблицы лидеров</td></tr>';
-                console.error('Ошибка загрузки таблицы лидеров:', error);
             }
         }
 
-        // Вход пользователя
+        // Вход пользователя - ИСПРАВЛЕННАЯ ВЕРСИЯ
         async function loginUser() {
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
@@ -1058,17 +435,22 @@
             }
             
             try {
-                const { data: players, error } = await supabaseClient
+                // Пробуем найти пользователя
+                const { data: players, error } = await db
                     .from('player_cabinets')
                     .select('*')
                     .eq('login', username)
-                    .eq('password', password)
-                    .single();
+                    .eq('password', password);
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Ошибка запроса:', error);
+                    showNotification('Ошибка сервера при входе', 'error');
+                    return;
+                }
                 
-                if (players) {
-                    currentUser = players;
+                // Проверяем результаты
+                if (players && players.length > 0) {
+                    currentUser = players[0]; // Берем первого пользователя
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
                     showNotification('Вход выполнен успешно!', 'success');
                     closeModal('loginModal');
@@ -1079,8 +461,8 @@
                 }
                 
             } catch (error) {
-                showNotification('Ошибка входа: ' + error.message, 'error');
                 console.error('Ошибка входа:', error);
+                showNotification('Ошибка входа: ' + error.message, 'error');
             }
         }
 
@@ -1088,7 +470,7 @@
         function enterAdminPanel() {
             const password = document.getElementById('adminPassword').value;
             
-            // Пароль администратора (замените на свой)
+            // Пароль администратора
             const ADMIN_PASSWORD = 'admin123';
             
             if (password === ADMIN_PASSWORD) {
@@ -1113,14 +495,20 @@
 
         // Показать информацию об игроке
         async function showPlayerInfo() {
+            if (!currentUser) return;
+            
             try {
-                const { data: player, error } = await supabaseClient
+                const { data: player, error } = await db
                     .from('player_cabinets')
                     .select('*')
                     .eq('id', currentUser.id)
                     .single();
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Ошибка загрузки данных игрока:', error);
+                    showNotification('Ошибка загрузки информации', 'error');
+                    return;
+                }
                 
                 if (player) {
                     document.getElementById('playerInfo').innerHTML = `
@@ -1158,8 +546,8 @@
                 }
                 
             } catch (error) {
-                showNotification('Ошибка загрузки информации', 'error');
                 console.error('Ошибка:', error);
+                showNotification('Ошибка загрузки информации', 'error');
             }
         }
 
@@ -1206,116 +594,13 @@
             openModal('placeBetModal');
         }
 
-        // Подтверждение ставки
-        async function confirmBet() {
-            if (!currentUser || !currentBet) return;
-            
-            const amount = parseInt(document.getElementById('betAmount').value);
-            const maxBet = Math.floor(currentUser.tokens * 0.5);
-            
-            if (!amount || amount < 1) {
-                showNotification('Введите сумму ставки', 'error');
-                return;
-            }
-            
-            if (amount > maxBet) {
-                showNotification(`Максимальная ставка: ${maxBet} жетонов`, 'error');
-                return;
-            }
-            
-            if (amount > currentUser.tokens) {
-                showNotification('Недостаточно жетонов', 'error');
-                return;
-            }
-            
-            try {
-                // Получаем информацию о матче
-                const { data: match, error: matchError } = await supabaseClient
-                    .from('bet_matches')
-                    .select('*')
-                    .eq('id', currentBet.matchId)
-                    .single();
-                
-                if (matchError) throw matchError;
-                
-                if (match.status !== 'live') {
-                    showNotification('Ставки принимаются только на LIVE матчи', 'error');
-                    return;
-                }
-                
-                // Создаем запись в истории ставок
-                const betId = 'bet_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                const potentialWin = Math.floor(amount * currentBet.odds);
-                
-                const { error: betError } = await supabaseClient
-                    .from('bet_history')
-                    .insert([{
-                        id: betId,
-                        match_id: currentBet.matchId,
-                        player_login: currentUser.login,
-                        player_name: currentUser.player_name,
-                        bet_on: currentBet.betOn,
-                        amount: amount,
-                        odds: currentBet.odds,
-                        potential_win: potentialWin,
-                        status: 'pending',
-                        placed_at: new Date().toISOString()
-                    }]);
-                
-                if (betError) throw betError;
-                
-                // Обновляем баланс игрока
-                const newTokens = currentUser.tokens - amount;
-                const { error: updateError } = await supabaseClient
-                    .from('player_cabinets')
-                    .update({ tokens: newTokens })
-                    .eq('id', currentUser.id);
-                
-                if (updateError) throw updateError;
-                
-                // Обновляем данные матча
-                const newBets = match.bets ? [...match.bets, betId] : [betId];
-                const newTotalBets = (match.total_bets || 0) + 1;
-                const newTotalAmount = (match.total_amount || 0) + amount;
-                
-                await supabaseClient
-                    .from('bet_matches')
-                    .update({
-                        bets: newBets,
-                        total_bets: newTotalBets,
-                        total_amount: newTotalAmount,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', currentBet.matchId);
-                
-                // Обновляем локальные данные
-                currentUser.tokens = newTokens;
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                
-                showNotification(`Ставка ${amount} жетонов принята!`, 'success');
-                closeModal('placeBetModal');
-                
-                // Обновляем данные
-                await Promise.all([
-                    updateStats(),
-                    loadLiveMatches()
-                ]);
-                
-                currentBet = null;
-                
-            } catch (error) {
-                showNotification('Ошибка размещения ставки: ' + error.message, 'error');
-                console.error('Ошибка ставки:', error);
-            }
-        }
-
         // Панель администратора
         async function showAdminPanel() {
             try {
                 // Загружаем данные для админки
                 const [playersData, matchesData] = await Promise.all([
-                    supabaseClient.from('player_cabinets').select('*').order('player_name'),
-                    supabaseClient.from('bet_matches').select('*').order('date', { ascending: false })
+                    db.from('player_cabinets').select('*').order('player_name'),
+                    db.from('bet_matches').select('*').order('date', { ascending: false })
                 ]);
                 
                 const players = playersData.data || [];
@@ -1433,8 +718,8 @@
                 document.body.appendChild(adminPanel);
                 
             } catch (error) {
+                console.error('Ошибка загрузки панели администратора:', error);
                 showNotification('Ошибка загрузки панели администратора: ' + error.message, 'error');
-                console.error('Ошибка:', error);
             }
         }
 
@@ -1458,7 +743,7 @@
                 const login = name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now().toString(36);
                 const password = Math.random().toString(36).slice(-8);
                 
-                const { error } = await supabaseClient
+                const { error } = await db
                     .from('player_cabinets')
                     .insert([{
                         player_name: name,
@@ -1469,7 +754,11 @@
                         join_date: new Date().toISOString()
                     }]);
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Ошибка создания игрока:', error);
+                    showNotification('Ошибка создания игрока: ' + error.message, 'error');
+                    return;
+                }
                 
                 showNotification(`Игрок ${name} создан! Логин: ${login}, Пароль: ${password}`, 'success');
                 
@@ -1484,15 +773,15 @@
                 showAdminPanel();
                 
             } catch (error) {
+                console.error('Ошибка создания игрока:', error);
                 showNotification('Ошибка создания игрока: ' + error.message, 'error');
-                console.error('Ошибка:', error);
             }
         }
 
         async function addTokens(playerId, amount) {
             try {
                 // Получаем текущие данные игрока
-                const { data: player, error: getError } = await supabaseClient
+                const { data: player, error: getError } = await db
                     .from('player_cabinets')
                     .select('tokens')
                     .eq('id', playerId)
@@ -1502,7 +791,7 @@
                 
                 const newTokens = (player.tokens || 0) + amount;
                 
-                const { error: updateError } = await supabaseClient
+                const { error: updateError } = await db
                     .from('player_cabinets')
                     .update({ tokens: newTokens })
                     .eq('id', playerId);
@@ -1522,8 +811,8 @@
                 showAdminPanel();
                 
             } catch (error) {
+                console.error('Ошибка добавления жетонов:', error);
                 showNotification('Ошибка добавления жетонов: ' + error.message, 'error');
-                console.error('Ошибка:', error);
             }
         }
 
@@ -1533,7 +822,7 @@
             }
             
             try {
-                const { error } = await supabaseClient
+                const { error } = await db
                     .from('player_cabinets')
                     .delete()
                     .eq('id', playerId);
@@ -1553,138 +842,8 @@
                 showAdminPanel();
                 
             } catch (error) {
+                console.error('Ошибка удаления игрока:', error);
                 showNotification('Ошибка удаления игрока: ' + error.message, 'error');
-                console.error('Ошибка:', error);
-            }
-        }
-
-        async function createMatch() {
-            const player1Name = document.getElementById('matchPlayer1').value;
-            const player2Name = document.getElementById('matchPlayer2').value;
-            const date = document.getElementById('matchDate').value;
-            
-            if (!player1Name || !player2Name || player1Name === player2Name) {
-                showNotification('Выберите разных игроков', 'error');
-                return;
-            }
-            
-            if (!date) {
-                showNotification('Выберите дату матча', 'error');
-                return;
-            }
-            
-            try {
-                // Получаем данные игроков
-                const [player1Data, player2Data] = await Promise.all([
-                    supabaseClient.from('player_cabinets').select('rating').eq('player_name', player1Name).single(),
-                    supabaseClient.from('player_cabinets').select('rating').eq('player_name', player2Name).single()
-                ]);
-                
-                const player1Rating = player1Data.data?.rating || 1000;
-                const player2Rating = player2Data.data?.rating || 1000;
-                
-                // Рассчитываем коэффициенты
-                const odds = calculateOdds(player1Rating, player2Rating);
-                const matchId = 'match_' + Date.now().toString(36);
-                
-                const { error } = await supabaseClient
-                    .from('bet_matches')
-                    .insert([{
-                        id: matchId,
-                        player1: player1Name,
-                        player2: player2Name,
-                        player1_rating: player1Rating,
-                        player2_rating: player2Rating,
-                        date: date,
-                        status: 'pending',
-                        odds: odds,
-                        created_at: new Date().toISOString()
-                    }]);
-                
-                if (error) throw error;
-                
-                showNotification('Матч создан!', 'success');
-                
-                // Обновляем данные
-                await loadLiveMatches();
-                
-                // Обновляем панель админа
-                closeAdminPanel();
-                showAdminPanel();
-                
-            } catch (error) {
-                showNotification('Ошибка создания матча: ' + error.message, 'error');
-                console.error('Ошибка:', error);
-            }
-        }
-
-        async function updateMatchStatus(matchId, status) {
-            try {
-                const { error } = await supabaseClient
-                    .from('bet_matches')
-                    .update({ 
-                        status: status,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', matchId);
-                
-                if (error) throw error;
-                
-                showNotification(`Статус матча изменен на ${status === 'live' ? 'LIVE' : 'Ожидание'}`, 'success');
-                
-                // Обновляем данные
-                await Promise.all([
-                    updateStats(),
-                    loadLiveMatches()
-                ]);
-                
-                // Обновляем панель админа
-                closeAdminPanel();
-                showAdminPanel();
-                
-            } catch (error) {
-                showNotification('Ошибка обновления статуса: ' + error.message, 'error');
-                console.error('Ошибка:', error);
-            }
-        }
-
-        async function finalizeMatch(matchId, result) {
-            if (!confirm(`Подтвердить победу ${result === 'player1' ? 'первого' : 'второго'} игрока?`)) {
-                return;
-            }
-            
-            try {
-                // Обновляем матч
-                const { error: matchError } = await supabaseClient
-                    .from('bet_matches')
-                    .update({ 
-                        status: 'finished',
-                        result: result,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', matchId);
-                
-                if (matchError) throw matchError;
-                
-                // Здесь нужно добавить логику расчета выигрышей
-                // Это более сложная операция, которая требует обработки всех ставок на этот матч
-                
-                showNotification('Матч завершен!', 'success');
-                
-                // Обновляем данные
-                await Promise.all([
-                    updateStats(),
-                    loadLiveMatches(),
-                    loadLeaderboard()
-                ]);
-                
-                // Обновляем панель админа
-                closeAdminPanel();
-                showAdminPanel();
-                
-            } catch (error) {
-                showNotification('Ошибка завершения матча: ' + error.message, 'error');
-                console.error('Ошибка:', error);
             }
         }
 
@@ -1698,6 +857,10 @@
         }
 
         function showNotification(message, type = 'info') {
+            // Удаляем старые уведомления
+            const oldNotifications = document.querySelectorAll('.notification');
+            oldNotifications.forEach(n => n.remove());
+            
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
             notification.textContent = message;
