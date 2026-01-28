@@ -3172,9 +3172,8 @@
                 }
             }, 10000);
         }
-        // ============================================
-// ПОЛНЫЙ КОД ДЛЯ АВТОМАТИЧЕСКОЙ СИНХРОНИЗАЦИИ ТУРНИРНЫХ МАТЧЕЙ
-// ВСТАВЬТЕ ЭТО В КОНЕЦ САЙТА 2, ПЕРЕД ЗАКРЫВАЮЩИМ
+    // ============================================
+// ПОЛНЫЙ КОД ДЛЯ САЙТА 2 - ИСПРАВЛЕННЫЙ (без ошибок 404)
 // ============================================
 
 // 1. Переопределяем функцию загрузки матчей
@@ -3184,7 +3183,7 @@ async function loadMatchesDataWithTournaments() {
         const { data, error } = await db
             .from('bet_matches')
             .select('*')
-            .in('status', ['live', 'pending', 'finished'])
+            .in('status', ['live', 'pending'])
             .order('date', { ascending: true });
         
         if (error) throw error;
@@ -3272,7 +3271,7 @@ async function createOrUpdateBetMatch(tournament, tMatch) {
     }
 }
 
-// 5. Создание нового матча для ставок
+// 5. Создание нового матча для ставок (ИСПРАВЛЕННЫЙ)
 async function createNewBetMatch(tournament, tMatch, betMatchId) {
     // Данные игроков
     const player1Data = await getPlayerFromSite1(tMatch.player1);
@@ -3291,6 +3290,18 @@ async function createNewBetMatch(tournament, tMatch, betMatchId) {
     const rating2 = player2Data?.rating || 1000;
     const odds = calculateTournamentOdds(rating1, rating2);
     
+    // Исправляем URL аватарок
+    let player1Avatar = null;
+    let player2Avatar = null;
+    
+    if (player1Data?.avatar && isValidAvatarUrl(player1Data.avatar)) {
+        player1Avatar = player1Data.avatar;
+    }
+    
+    if (player2Data?.avatar && isValidAvatarUrl(player2Data.avatar)) {
+        player2Avatar = player2Data.avatar;
+    }
+    
     // Матч для ставок
     const betMatch = {
         id: betMatchId,
@@ -3300,8 +3311,8 @@ async function createNewBetMatch(tournament, tMatch, betMatchId) {
         player2: tMatch.player2,
         player1_rating: rating1,
         player2_rating: rating2,
-        player1_avatar: player1Data?.avatar,
-        player2_avatar: player2Data?.avatar,
+        player1_avatar: player1Avatar,
+        player2_avatar: player2Avatar,
         date: tMatch.created_at || new Date().toISOString(),
         status: status,
         type: 'tournament',
@@ -3486,11 +3497,13 @@ async function addTokensToPlayer(playerName, amount) {
     }
 }
 
-// 10. Обновляем оригинальные функции
-// Заменяем загрузку матчей
-loadMatchesData = loadMatchesDataWithTournaments;
+function isValidAvatarUrl(url) {
+    if (!url) return false;
+    // Проверяем, что это валидный URL и не содержит ошибок
+    return url.startsWith('http') && !url.includes('${') && !url.includes('%7B');
+}
 
-// Обновляем отображение матчей с турнирной информацией
+// 10. ОБНОВЛЕННАЯ ФУНКЦИЯ СОЗДАНИЯ КАРТОЧКИ МАТЧА (исправленная)
 function createMatchCard(match) {
     const matchCard = document.createElement('div');
     matchCard.className = 'match-card';
@@ -3506,6 +3519,10 @@ function createMatchCard(match) {
     const rating1 = player1?.rating || 1000;
     const rating2 = player2?.rating || 1000;
     const odds = match.odds || calculateOdds(rating1, rating2);
+    
+    // Исправляем аватарки - проверяем их наличие
+    const player1Avatar = (player1?.avatar && isValidAvatarUrl(player1.avatar)) ? player1.avatar : null;
+    const player2Avatar = (player2?.avatar && isValidAvatarUrl(player2.avatar)) ? player2.avatar : null;
     
     matchCard.innerHTML = `
         ${match.tournament_id ? `
@@ -3533,8 +3550,12 @@ function createMatchCard(match) {
             <div class="match-players">
                 <div class="player">
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
-                        <div class="player-avatar">${match.player1?.charAt(0) || '?'}</div>
-                        <div class="player-avatar">${match.player1_partner?.charAt(0) || '?'}</div>
+                        <div class="player-avatar" style="width: 30px; height: 30px; font-size: 14px;">
+                            ${match.player1?.charAt(0) || '?'}
+                        </div>
+                        <div class="player-avatar" style="width: 30px; height: 30px; font-size: 14px;">
+                            ${match.player1_partner?.charAt(0) || '?'}
+                        </div>
                     </div>
                     <div class="player-name" style="font-size: 0.9rem;">
                         ${match.player1}<br>${match.player1_partner}
@@ -3544,8 +3565,12 @@ function createMatchCard(match) {
                 <div class="vs">VS</div>
                 <div class="player">
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
-                        <div class="player-avatar">${match.player2?.charAt(0) || '?'}</div>
-                        <div class="player-avatar">${match.player2_partner?.charAt(0) || '?'}</div>
+                        <div class="player-avatar" style="width: 30px; height: 30px; font-size: 14px;">
+                            ${match.player2?.charAt(0) || '?'}
+                        </div>
+                        <div class="player-avatar" style="width: 30px; height: 30px; font-size: 14px;">
+                            ${match.player2_partner?.charAt(0) || '?'}
+                        </div>
                     </div>
                     <div class="player-name" style="font-size: 0.9rem;">
                         ${match.player2}<br>${match.player2_partner}
@@ -3556,19 +3581,25 @@ function createMatchCard(match) {
         ` : `
             <div class="match-players">
                 <div class="player">
-                    ${player1?.avatar ? 
-                        `<img src="${player1.avatar}" class="player-avatar-img" onerror="this.style.display='none';">` : 
-                        `<div class="player-avatar">${match.player1?.charAt(0) || '?'}</div>`
+                    ${player1Avatar ? 
+                        `<img src="${player1Avatar}" class="player-avatar-img" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                        ''
                     }
+                    <div class="player-avatar" style="${player1Avatar ? 'display: none;' : ''}">
+                        ${match.player1?.charAt(0) || '?'}
+                    </div>
                     <div class="player-name">${match.player1 || 'Игрок 1'}</div>
                     <div class="player-rating">${rating1}</div>
                 </div>
                 <div class="vs">VS</div>
                 <div class="player">
-                    ${player2?.avatar ? 
-                        `<img src="${player2.avatar}" class="player-avatar-img" onerror="this.style.display='none';">` : 
-                        `<div class="player-avatar">${match.player2?.charAt(0) || '?'}</div>`
+                    ${player2Avatar ? 
+                        `<img src="${player2Avatar}" class="player-avatar-img" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                        ''
                     }
+                    <div class="player-avatar" style="${player2Avatar ? 'display: none;' : ''}">
+                        ${match.player2?.charAt(0) || '?'}
+                    </div>
                     <div class="player-name">${match.player2 || 'Игрок 2'}</div>
                     <div class="player-rating">${rating2}</div>
                 </div>
