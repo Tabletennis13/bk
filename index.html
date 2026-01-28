@@ -3172,6 +3172,455 @@
                 }
             }, 10000);
         }
+        // ============================================
+// ПОЛНЫЙ КОД ДЛЯ АВТОМАТИЧЕСКОЙ СИНХРОНИЗАЦИИ ТУРНИРНЫХ МАТЧЕЙ
+// ВСТАВЬТЕ ЭТО В КОНЕЦ САЙТА 2, ПЕРЕД ЗАКРЫВАЮЩИМ </script>
+// ============================================
+
+// 1. Переопределяем функцию загрузки матчей
+async function loadMatchesDataWithTournaments() {
+    try {
+        // Загружаем ВСЕ матчи для ставок
+        const { data, error } = await db
+            .from('bet_matches')
+            .select('*')
+            .in('status', ['live', 'pending', 'finished'])
+            .order('date', { ascending: true });
+        
+        if (error) throw error;
+        
+        allMatches = data || [];
+        
+        // Автоматически синхронизируем с турнирами
+        await syncWithTournamentMatches();
+        
+        // Обновляем отображение
+        loadLiveMatches();
+        updateStats();
+        
+    } catch (error) {
+        console.error('Ошибка загрузки матчей:', error);
+        allMatches = [];
+    }
+}
+
+// 2. Основная функция синхронизации
+async function syncWithTournamentMatches() {
+    try {
+        // Получаем активные турниры
+        const { data: tournaments, error: tError } = await db
+            .from('tournaments')
+            .select('*')
+            .in('status', ['active', 'completed'])
+            .order('created_at', { ascending: false });
+        
+        if (tError) throw tError;
+        
+        // Обрабатываем каждый турнир
+        for (const tournament of tournaments || []) {
+            await processTournamentMatches(tournament);
+        }
+        
+    } catch (error) {
+        console.error('Ошибка синхронизации:', error);
+    }
+}
+
+// 3. Обработка матчей турнира
+async function processTournamentMatches(tournament) {
+    try {
+        // Получаем матчи турнира
+        const { data: tMatches, error: mError } = await db
+            .from('tournament_matches')
+            .select('*')
+            .eq('tournament_id', tournament.id)
+            .order('round', { ascending: true });
+        
+        if (mError) throw mError;
+        
+        // Создаем/обновляем матчи для ставок
+        for (const tMatch of tMatches || []) {
+            await createOrUpdateBetMatch(tournament, tMatch);
+        }
+        
+    } catch (error) {
+        console.error(`Ошибка обработки турнира ${tournament.name}:`, error);
+    }
+}
+
+// 4. Создание/обновление матча для ставок
+async function createOrUpdateBetMatch(tournament, tMatch) {
+    try {
+        const betMatchId = `tournament_${tournament.id}_match_${tMatch.match_number}`;
+        
+        // Проверяем существование
+        const { data: existing } = await db
+            .from('bet_matches')
+            .select('*')
+            .eq('id', betMatchId)
+            .single()
+            .catch(() => ({ data: null }));
+        
+        if (existing) {
+            await updateBetMatch(existing, tMatch);
+        } else {
+            await createNewBetMatch(tournament, tMatch, betMatchId);
+        }
+        
+    } catch (error) {
+        console.error('Ошибка создания матча:', error);
+    }
+}
+
+// 5. Создание нового матча для ставок
+async function createNewBetMatch(tournament, tMatch, betMatchId) {
+    // Данные игроков
+    const player1Data = await getPlayerFromSite1(tMatch.player1);
+    const player2Data = await getPlayerFromSite1(tMatch.player2);
+    
+    // Статус
+    let status = 'pending';
+    if (tMatch.winner) {
+        status = 'finished';
+    } else if (tournament.status === 'active') {
+        status = 'live';
+    }
+    
+    // Коэффициенты
+    const rating1 = player1Data?.rating || 1000;
+    const rating2 = player2Data?.rating || 1000;
+    const odds = calculateTournamentOdds(rating1, rating2);
+    
+    // Матч для ставок
+    const betMatch = {
+        id: betMatchId,
+        tournament_id: tournament.id,
+        tournament_name: tournament.name,
+        player1: tMatch.player1,
+        player2: tMatch.player2,
+        player1_rating: rating1,
+        player2_rating: rating2,
+        player1_avatar: player1Data?.avatar,
+        player2_avatar: player2Data?.avatar,
+        date: tMatch.created_at || new Date().toISOString(),
+        status: status,
+        type: 'tournament',
+        round: tMatch.round || 1,
+        match_number: tMatch.match_number || 1,
+        odds: odds,
+        created_at: new Date().toISOString(),
+        is_pairs: tournament.is_pairs || false
+    };
+    
+    // Парный турнир
+    if (tournament.is_pairs && tournament.pairs) {
+        const pair1 = findPair(tournament.pairs, tMatch.player1);
+        const pair2 = findPair(tournament.pairs, tMatch.player2);
+        if (pair1 && pair2) {
+            betMatch.player1_partner = pair1.partner;
+            betMatch.player2_partner = pair2.partner;
+        }
+    }
+    
+    // Если завершен - результат
+    if (tMatch.winner) {
+        betMatch.result = tMatch.winner;
+        betMatch.score = tMatch.score;
+        // Автоматический расчет ставок
+        setTimeout(() => calculateBetsForMatch(betMatch), 2000);
+    }
+    
+    // Сохраняем
+    const { error } = await db
+        .from('bet_matches')
+        .insert([betMatch]);
+    
+    if (!error) {
+        console.log(`✅ Матч для ставок: ${tMatch.player1} vs ${tMatch.player2}`);
+    }
+}
+
+// 6. Обновление существующего матча
+async function updateBetMatch(existingMatch, tMatch) {
+    let updates = {};
+    
+    if (tMatch.winner && existingMatch.status !== 'finished') {
+        updates.status = 'finished';
+        updates.result = tMatch.winner;
+        updates.score = tMatch.score;
+        updates.updated_at = new Date().toISOString();
+        
+        // Расчет ставок
+        setTimeout(() => calculateBetsForMatch({ ...existingMatch, ...updates }), 2000);
+    }
+    
+    if (Object.keys(updates).length > 0) {
+        await db
+            .from('bet_matches')
+            .update(updates)
+            .eq('id', existingMatch.id);
+    }
+}
+
+// 7. Автоматический расчет ставок
+async function calculateBetsForMatch(betMatch) {
+    try {
+        // Все ставки на этот матч
+        const { data: bets } = await db
+            .from('player_bets')
+            .select('*')
+            .eq('match_id', betMatch.id)
+            .eq('status', 'active')
+            .catch(() => ({ data: [] }));
+        
+        if (!bets || bets.length === 0) return;
+        
+        console.log(`💰 Расчет ${bets.length} ставок для матча ${betMatch.id}`);
+        
+        for (const bet of bets) {
+            await processBetResult(bet, betMatch);
+        }
+        
+    } catch (error) {
+        console.error('Ошибка расчета:', error);
+    }
+}
+
+// 8. Обработка одной ставки
+async function processBetResult(bet, betMatch) {
+    try {
+        let newStatus = 'lost';
+        let actualWin = 0;
+        
+        // Определяем победителя
+        const winner = betMatch.result;
+        const isPlayer1Win = winner === betMatch.player1 || 
+                           (betMatch.player1_partner && winner === betMatch.player1_partner);
+        const isPlayer2Win = winner === betMatch.player2 || 
+                           (betMatch.player2_partner && winner === betMatch.player2_partner);
+        const isDraw = winner === 'draw';
+        
+        // Проверяем выигрыш
+        if ((bet.bet_on === 'player1' && isPlayer1Win) ||
+            (bet.bet_on === 'player2' && isPlayer2Win) ||
+            (bet.bet_on === 'draw' && isDraw)) {
+            newStatus = 'won';
+            actualWin = Math.round(bet.amount * (bet.odds || 1.8));
+            
+            // Начисляем выигрыш
+            await addTokensToPlayer(bet.player_name, actualWin);
+        }
+        
+        // Обновляем ставку
+        await db
+            .from('player_bets')
+            .update({
+                status: newStatus,
+                actual_win: actualWin,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', bet.id);
+        
+    } catch (error) {
+        console.error('Ошибка обработки ставки:', error);
+    }
+}
+
+// 9. Вспомогательные функции
+async function getPlayerFromSite1(playerName) {
+    try {
+        const { data } = await db
+            .from('players')
+            .select('*')
+            .eq('name', playerName)
+            .single()
+            .catch(() => ({ data: null }));
+        return data;
+    } catch (error) {
+        return null;
+    }
+}
+
+function findPair(pairs, playerName) {
+    if (!pairs || !Array.isArray(pairs)) return null;
+    for (let i = 0; i < pairs.length; i++) {
+        const pair = pairs[i];
+        if (pair && Array.isArray(pair)) {
+            if (pair[0] === playerName) return { index: i, partner: pair[1] };
+            if (pair[1] === playerName) return { index: i, partner: pair[0] };
+        }
+    }
+    return null;
+}
+
+function calculateTournamentOdds(rating1, rating2) {
+    const diff = Math.abs(rating1 - rating2);
+    let p1, p2;
+    
+    if (diff < 50) { p1 = 1.9; p2 = 1.9; }
+    else if (diff < 100) { p1 = rating1 > rating2 ? 1.6 : 2.2; p2 = rating1 > rating2 ? 2.2 : 1.6; }
+    else if (diff < 200) { p1 = rating1 > rating2 ? 1.4 : 2.8; p2 = rating1 > rating2 ? 2.8 : 1.4; }
+    else { p1 = rating1 > rating2 ? 1.2 : 4.0; p2 = rating1 > rating2 ? 4.0 : 1.2; }
+    
+    return { player1: p1, player2: p2, draw: 6.0 };
+}
+
+async function addTokensToPlayer(playerName, amount) {
+    try {
+        const { data: cabinet } = await db
+            .from('player_cabinets')
+            .select('*')
+            .eq('player_name', playerName)
+            .single()
+            .catch(() => ({ data: null }));
+        
+        if (cabinet) {
+            const newTokens = (cabinet.tokens || 0) + amount;
+            await db
+                .from('player_cabinets')
+                .update({ tokens: newTokens })
+                .eq('player_name', playerName);
+        }
+    } catch (error) {
+        console.error('Ошибка начисления:', error);
+    }
+}
+
+// 10. Обновляем оригинальные функции
+// Заменяем загрузку матчей
+loadMatchesData = loadMatchesDataWithTournaments;
+
+// Обновляем отображение матчей с турнирной информацией
+function createMatchCard(match) {
+    const matchCard = document.createElement('div');
+    matchCard.className = 'match-card';
+    
+    // Турнирный стиль
+    if (match.tournament_id) {
+        matchCard.style.borderLeft = '4px solid #9C27B0';
+        matchCard.style.position = 'relative';
+    }
+    
+    const player1 = allPlayers.find(p => p.name === match.player1);
+    const player2 = allPlayers.find(p => p.name === match.player2);
+    const rating1 = player1?.rating || 1000;
+    const rating2 = player2?.rating || 1000;
+    const odds = match.odds || calculateOdds(rating1, rating2);
+    
+    matchCard.innerHTML = `
+        ${match.tournament_id ? `
+            <div style="position: absolute; top: 10px; left: 10px; background: #9C27B0; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">
+                🏆 Турнир
+            </div>
+            ${match.tournament_name ? `
+                <div style="position: absolute; top: 10px; right: 10px; background: #673AB7; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    ${match.tournament_name}
+                </div>
+            ` : ''}
+        ` : ''}
+        
+        <div class="match-header" style="${match.tournament_id ? 'margin-top: 30px;' : ''}">
+            <div>
+                <small>${new Date(match.date).toLocaleDateString('ru-RU')}</small>
+                ${match.round ? `<br><small>Раунд ${match.round}</small>` : ''}
+            </div>
+            <span class="match-status ${match.status === 'live' ? 'status-live' : ''}">
+                ${match.status === 'live' ? 'LIVE' : 'Скоро'}${match.tournament_id ? ' 🏆' : ''}
+            </span>
+        </div>
+        
+        ${match.is_pairs && match.player1_partner && match.player2_partner ? `
+            <div class="match-players">
+                <div class="player">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                        <div class="player-avatar">${match.player1?.charAt(0) || '?'}</div>
+                        <div class="player-avatar">${match.player1_partner?.charAt(0) || '?'}</div>
+                    </div>
+                    <div class="player-name" style="font-size: 0.9rem;">
+                        ${match.player1}<br>${match.player1_partner}
+                    </div>
+                    <div class="player-rating">Пара</div>
+                </div>
+                <div class="vs">VS</div>
+                <div class="player">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                        <div class="player-avatar">${match.player2?.charAt(0) || '?'}</div>
+                        <div class="player-avatar">${match.player2_partner?.charAt(0) || '?'}</div>
+                    </div>
+                    <div class="player-name" style="font-size: 0.9rem;">
+                        ${match.player2}<br>${match.player2_partner}
+                    </div>
+                    <div class="player-rating">Пара</div>
+                </div>
+            </div>
+        ` : `
+            <div class="match-players">
+                <div class="player">
+                    ${player1?.avatar ? 
+                        `<img src="${player1.avatar}" class="player-avatar-img" onerror="this.style.display='none';">` : 
+                        `<div class="player-avatar">${match.player1?.charAt(0) || '?'}</div>`
+                    }
+                    <div class="player-name">${match.player1 || 'Игрок 1'}</div>
+                    <div class="player-rating">${rating1}</div>
+                </div>
+                <div class="vs">VS</div>
+                <div class="player">
+                    ${player2?.avatar ? 
+                        `<img src="${player2.avatar}" class="player-avatar-img" onerror="this.style.display='none';">` : 
+                        `<div class="player-avatar">${match.player2?.charAt(0) || '?'}</div>`
+                    }
+                    <div class="player-name">${match.player2 || 'Игрок 2'}</div>
+                    <div class="player-rating">${rating2}</div>
+                </div>
+            </div>
+        `}
+        
+        <div class="match-odds">
+            <button class="odds-btn" onclick="selectBet('${match.id}', 'player1', ${odds.player1}, '${match.player1}${match.player1_partner ? ' & ' + match.player1_partner : ''}')">
+                П1 <span class="odds-value">${odds.player1.toFixed(2)}</span>
+            </button>
+            <button class="odds-btn" onclick="selectBet('${match.id}', 'draw', ${odds.draw || 6.0}, 'Ничья')">
+                Н <span class="odds-value">${(odds.draw || 6.0).toFixed(2)}</span>
+            </button>
+            <button class="odds-btn" onclick="selectBet('${match.id}', 'player2', ${odds.player2}, '${match.player2}${match.player2_partner ? ' & ' + match.player2_partner : ''}')">
+                П2 <span class="odds-value">${odds.player2.toFixed(2)}</span>
+            </button>
+        </div>
+        
+        ${match.status === 'live' && currentUser ? `
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <input type="number" id="bet-amount-${match.id}" placeholder="Сумма" 
+                       min="1" max="${Math.floor((currentUser.tokens || 0) * 0.5)}" 
+                       style="flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem;">
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button onclick="placeBet('${match.id}')" class="bet-btn" style="flex: 1; padding: 0.5rem;">
+                    <i class="fas fa-coins"></i> Сделать ставку
+                </button>
+            </div>
+            <div id="bet-info-${match.id}" style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--gray);">
+                ${selectedBets[match.id] ? `Выбрано: ${selectedBets[match.id].playerName} (коэф. ${selectedBets[match.id].odds.toFixed(2)})` : 'Выберите исход'}
+            </div>
+        </div>
+        ` : ''}
+    `;
+    
+    return matchCard;
+}
+
+// 11. Автоматический запуск синхронизации
+setTimeout(() => {
+    // Первая синхронизация через 3 секунды после загрузки
+    syncWithTournamentMatches();
+    
+    // Автоматическая синхронизация каждые 30 секунд
+    setInterval(syncWithTournamentMatches, 30000);
+}, 3000);
+
+// ============================================
+// КОНЕЦ КОДА ДЛЯ САЙТА 2
+// ============================================
     </script>
 
     <!-- Подключаем библиотеку Supabase -->
