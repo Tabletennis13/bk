@@ -2,877 +2,3179 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Теннисная лига с интеграцией ставок</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лига ставок на настольный теннис</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; background: #f5f5f5; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab { padding: 10px 20px; background: white; border: none; border-radius: 5px; cursor: pointer; flex: 1; text-align: center; }
-        .tab.active { background: #667eea; color: white; }
-        .tab-content { display: none; background: white; padding: 20px; border-radius: 10px; }
-        .tab-content.active { display: block; }
-        .tournament-card, .bet-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .match-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
-        .bet-form { display: flex; gap: 10px; margin-top: 10px; }
-        .bet-form input { flex: 1; padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
-        .bet-form button { padding: 5px 15px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .notification { position: fixed; top: 20px; right: 20px; padding: 15px; border-radius: 5px; color: white; z-index: 1000; }
-        .notification.success { background: #4CAF50; }
-        .notification.error { background: #f44336; }
-        .loading { text-align: center; padding: 20px; color: #666; }
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --gray: #6b7280;
+            --gray-light: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: #f8fafc;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Навигация */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.3s;
+            padding: 0.5rem;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .btn-login, .btn-admin {
+            background: var(--primary);
+            color: white !important;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .btn-admin {
+            background: var(--danger);
+        }
+
+        /* Мобильное меню */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--dark);
+            cursor: pointer;
+        }
+
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 999;
+            padding: 1rem;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-menu a {
+            display: block;
+            padding: 1rem;
+            text-decoration: none;
+            color: var(--dark);
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .mobile-menu a:last-child {
+            border-bottom: none;
+        }
+
+        /* Герой секция */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 1rem;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            min-width: 150px;
+        }
+
+        .stat i {
+            font-size: 2rem;
+            opacity: 0.8;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Правила */
+        .rules-banner {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid var(--warning);
+            margin: 2rem auto;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            max-width: 1200px;
+        }
+
+        .banner-content {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .banner-icon {
+            font-size: 1.5rem;
+            color: var(--warning);
+            flex-shrink: 0;
+            margin-top: 0.25rem;
+        }
+
+        /* Секции */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem 0 0;
+        }
+
+        .section-header h2 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Магазин */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem 0 2rem;
+        }
+
+        .shop-item {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .shop-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .shop-item.featured {
+            border: 2px solid var(--primary);
+            position: relative;
+        }
+
+        .shop-item.featured::before {
+            content: '🔥 ПОПУЛЯРНО';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .item-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .item-icon.rating {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            color: white;
+        }
+
+        .item-icon.skip {
+            background: linear-gradient(135deg, #10b981 0%, #065f46 100%);
+            color: white;
+        }
+
+        .item-icon.double {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: white;
+        }
+
+        .item-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--warning);
+            margin: 0.5rem 0;
+        }
+
+        .item-price i {
+            margin-right: 0.25rem;
+        }
+
+        .item-description {
+            color: var(--gray);
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            flex-grow: 1;
+        }
+
+        /* Матчи */
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem 0 2rem;
+        }
+
+        @media (max-width: 640px) {
+            .matches-grid, .shop-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .match-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .match-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .match-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-live {
+            background: #fef3c7;
+            color: #92400e;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .match-players {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            gap: 0.5rem;
+        }
+
+        .player {
+            text-align: center;
+            flex: 1;
+        }
+
+        .player-avatar-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 0.5rem;
+            object-fit: cover;
+            border: 3px solid var(--primary);
+        }
+
+        .player-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            margin: 0 auto 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .vs {
+            font-weight: bold;
+            color: var(--gray);
+            margin: 0 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .player-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .player-rating {
+            color: var(--gray);
+            font-size: 0.8rem;
+            background: var(--gray-light);
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            display: inline-block;
+        }
+
+        .match-odds {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .odds-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid var(--gray-light);
+            border-radius: 0.5rem;
+            background: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .odds-btn:hover {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+
+        .odds-btn.selected {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .odds-btn.selected .odds-value {
+            color: white;
+        }
+
+        .odds-value {
+            display: block;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-top: 0.25rem;
+        }
+
+        /* Таблица лидеров */
+        .leaderboard-table {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin: 1rem 0 2rem;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th {
+            background: #f9fafb;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray);
+            border-bottom: 2px solid var(--gray-light);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .player-rank {
+            font-weight: bold;
+            color: var(--primary);
+            text-align: center;
+        }
+
+        .player-avatar-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+            vertical-align: middle;
+            border: 2px solid var(--primary);
+        }
+
+        /* Как начать играть */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem 0;
+        }
+
+        .step {
+            text-align: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin: 0 auto 1rem;
+        }
+
+        .step-icon {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .step h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        /* Футер */
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 2rem 0 1rem;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3, .footer-section h4 {
+            margin-bottom: 1rem;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .footer-section a {
+            color: #d1d5db;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #374151;
+            color: #9ca3af;
+            font-size: 0.75rem;
+        }
+
+        /* Модальные окна */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+            background: none;
+            border: none;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--gray-light);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Кнопки */
+        .bet-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .bet-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .bet-btn.danger {
+            background: var(--danger);
+        }
+
+        .bet-btn.danger:hover {
+            background: #dc2626;
+        }
+
+        .bet-btn.success {
+            background: var(--success);
+        }
+
+        .bet-btn.success:hover {
+            background: #059669;
+        }
+
+        .bet-btn.warning {
+            background: var(--warning);
+        }
+
+        .bet-btn.warning:hover {
+            background: #d97706;
+        }
+
+        /* Загрузка и ошибки */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--gray);
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        /* Уведомления */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            z-index: 1002;
+            animation: slideIn 0.3s ease;
+            max-width: 300px;
+            word-wrap: break-word;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .notification.success { background: var(--success); }
+        .notification.error { background: var(--danger); }
+        .notification.info { background: var(--primary); }
+
+        /* Админ панель */
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 1002;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .admin-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .admin-section h3 {
+            margin-bottom: 1rem;
+            color: var(--dark);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .player-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--gray-light);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+        }
+
+        .player-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-item:last-child {
+            border-bottom: none;
+        }
+
+        .player-info {
+            flex: 1;
+        }
+
+        .player-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.25rem 0.5rem;
+            border: none;
+            border-radius: 0.25rem;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .action-btn.add-tokens {
+            background: var(--success);
+        }
+
+        .action-btn.delete {
+            background: var(--danger);
+        }
+
+        .action-btn.small {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        /* Покупки игроков в админке */
+        .player-purchases {
+            background: #f8fafc;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .purchase-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .purchase-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Мобильная адаптация */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .hero h1 {
+                font-size: 1.75rem;
+            }
+            
+            .hero-stats {
+                gap: 1rem;
+            }
+            
+            .stat {
+                min-width: 120px;
+                padding: 0.75rem;
+            }
+            
+            .stat i {
+                font-size: 1.5rem;
+            }
+            
+            .stat-number {
+                font-size: 1.5rem;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .steps-grid, .shop-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                margin: 5% auto;
+                padding: 1rem;
+            }
+            
+            .player-avatar-img, .player-avatar {
+                width: 50px;
+                height: 50px;
+            }
+            
+            table {
+                font-size: 0.9rem;
+            }
+            
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+            
+            .stat {
+                min-width: 100%;
+                justify-content: center;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .match-card, .shop-item {
+                padding: 1rem;
+            }
+            
+            .vs {
+                font-size: 0.8rem;
+            }
+            
+            .player-name {
+                font-size: 0.8rem;
+            }
+            
+            .player-rating {
+                font-size: 0.7rem;
+                padding: 0.15rem 0.35rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎾 Теннисная лига с системой ставок</h1>
-            <p>Автоматическая интеграция турниров и ставок</p>
-        </div>
-        
-        <div class="tabs">
-            <button class="tab active" onclick="openTab('tournaments')">🏆 Турниры</button>
-            <button class="tab" onclick="openTab('bets')">🎯 Ставки</button>
-            <button class="tab" onclick="openTab('integration')">🔄 Интеграция</button>
-        </div>
-        
-        <div id="tournaments" class="tab-content active">
-            <h2>Текущий турнир</h2>
-            <div id="currentTournament"></div>
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-table-tennis-paddle-ball"></i>
+                <span>Теннисная Лига</span>
+            </div>
             
-            <h2>Создать турнир</h2>
-            <div class="tournament-card">
-                <input type="text" id="tournamentName" placeholder="Название турнира" style="width: 100%; padding: 10px; margin-bottom: 10px;">
-                <select id="tournamentType" style="width: 100%; padding: 10px; margin-bottom: 10px;">
-                    <option value="round_robin_3">Круговой турнир (3 игрока)</option>
-                    <option value="round_robin_4">Круговой турнир (4 игрока)</option>
-                    <option value="round_robin_5">Круговой турнир (5 игроков)</option>
-                </select>
-                <div id="playerSelection" style="margin-bottom: 10px;">
-                    <label><input type="checkbox" value="Игрок 1"> Игрок 1 (1000)</label><br>
-                    <label><input type="checkbox" value="Игрок 2"> Игрок 2 (950)</label><br>
-                    <label><input type="checkbox" value="Игрок 3"> Игрок 3 (1100)</label><br>
-                    <label><input type="checkbox" value="Игрок 4"> Игрок 4 (1050)</label><br>
-                    <label><input type="checkbox" value="Игрок 5"> Игрок 5 (980)</label>
+            <div class="nav-links">
+                <a href="#" class="active"><i class="fas fa-home"></i> Главная</a>
+                <a href="#matches"><i class="fas fa-trophy"></i> Матчи</a>
+                <a href="#shop"><i class="fas fa-store"></i> Магазин</a>
+                <a href="#rules"><i class="fas fa-book"></i> Правила</a>
+                <a href="#login" class="btn-login" id="loginBtn"><i class="fas fa-user"></i> <span id="loginText">Войти</span></a>
+                <a href="#admin" class="btn-admin" id="adminBtn"><i class="fas fa-cog"></i> Админ</a>
+            </div>
+            
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Мобильное меню -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#" class="active"><i class="fas fa-home"></i> Главная</a>
+        <a href="#matches"><i class="fas fa-trophy"></i> Матчи</a>
+        <a href="#shop"><i class="fas fa-store"></i> Магазин</a>
+        <a href="#rules"><i class="fas fa-book"></i> Правила</a>
+        <a href="#login" id="mobileLoginBtn"><i class="fas fa-user"></i> <span id="mobileLoginText">Войти</span></a>
+        <a href="#admin" id="mobileAdminBtn"><i class="fas fa-cog"></i> Админ</a>
+    </div>
+
+    <!-- Герой секция -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Лига ставок на настольный теннис</h1>
+            <p class="hero-subtitle">Соревнуйся, делай ставки, побеждай! Виртуальные жетоны за реальные достижения</p>
+            
+            <div class="hero-stats">
+                <div class="stat">
+                    <i class="fas fa-users"></i>
+                    <div>
+                        <span class="stat-number" id="total-players">0</span>
+                        <span class="stat-label">Игроков в лиге</span>
+                    </div>
                 </div>
-                <button onclick="createTournament()" style="width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                    🏆 Создать турнир
-                </button>
+                <div class="stat">
+                    <i class="fas fa-trophy"></i>
+                    <div>
+                        <span class="stat-number" id="live-matches">0</span>
+                        <span class="stat-label">Матчей LIVE</span>
+                    </div>
+                </div>
+                <div class="stat">
+                    <i class="fas fa-coins"></i>
+                    <div>
+                        <span class="stat-number" id="total-bets">0</span>
+                        <span class="stat-label">Жетонов в игре</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="hero-buttons">
+                <a href="#matches" class="btn-primary">
+                    <i class="fas fa-play"></i> Начать делать ставки
+                </a>
+                <a href="#rules" class="btn-secondary">
+                    <i class="fas fa-info-circle"></i> Как это работает?
+                </a>
             </div>
         </div>
-        
-        <div id="bets" class="tab-content">
-            <h2>Активные ставки</h2>
-            <div id="activeBets"></div>
-            
-            <h2>История ставок</h2>
-            <div id="betHistory"></div>
-        </div>
-        
-        <div id="integration" class="tab-content">
-            <h2>🔄 Автоматическая интеграция</h2>
-            <div class="tournament-card">
-                <h3>Как это работает:</h3>
-                <p>1. Создается турнир в системе рейтинга</p>
-                <p>2. <strong>Автоматически создаются матчи для ставок</strong></p>
-                <p>3. Игроки делают ставки на предстоящие матчи</p>
-                <p>4. После завершения матча <strong>автоматически рассчитываются ставки</strong></p>
-                <p>5. Победители получают виртуальные жетоны</p>
-                
-                <div style="margin: 20px 0; padding: 15px; background: #e8f5e9; border-radius: 5px;">
-                    <h3>📊 Статистика интеграции</h3>
-                    <p>Автоматически создано ставок: <span id="autoBetsCount">0</span></p>
-                    <p>Автоматически рассчитано: <span id="autoCalculated">0</span></p>
-                    <p>Общая сумма жетонов в обороте: <span id="totalTokens">0</span></p>
+    </section>
+
+    <!-- Правила -->
+    <section id="rules">
+        <div class="container">
+            <div class="rules-banner">
+                <div class="banner-content">
+                    <i class="fas fa-exclamation-triangle banner-icon"></i>
+                    <div>
+                        <h3>Важная информация</h3>
+                        <p>Данная платформа использует исключительно виртуальную валюту (жетоны лиги), которая не имеет денежной ценности и не может быть обменена на реальные деньги. Все ставки совершаются в развлекательных целях.</p>
+                    </div>
                 </div>
-                
-                <button onclick="runAutoIntegration()" style="width: 100%; padding: 15px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
-                    🔄 Запустить автоматическую интеграцию
-                </button>
             </div>
+        </div>
+    </section>
+
+    <!-- Матчи -->
+    <section id="matches">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="fas fa-broadcast-tower"></i> Матчи LIVE</h2>
+            </div>
+            <div class="matches-grid" id="live-matches-grid">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Загрузка матчей...
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Магазин -->
+    <section id="shop">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="fas fa-store"></i> Магазин жетонов</h2>
+                <small>Покупайте улучшения и бонусы за жетоны</small>
+            </div>
+            <div class="shop-grid" id="shop-grid">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Загрузка магазина...
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Таблица лидеров -->
+    <section class="leaderboard">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="fas fa-crown"></i> Топ игроков</h2>
+            </div>
+            <div class="leaderboard-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="50">#</th>
+                            <th>Игрок</th>
+                            <th>Рейтинг</th>
+                            <th>Матчи</th>
+                            <th>Победы</th>
+                            <th>Процент</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <tr>
+                            <td colspan="6" class="loading">
+                                <i class="fas fa-spinner fa-spin"></i> Загрузка таблицы лидеров...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Как начать играть -->
+    <section class="how-to-play">
+        <div class="container">
+            <h2 class="section-title" style="text-align: center; margin-bottom: 2rem; font-size: 1.8rem;">Как начать играть?</h2>
+            <div class="steps-grid">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <i class="fas fa-user-plus step-icon"></i>
+                    <h3>Регистрация</h3>
+                    <p>Администратор создает для вас личный кабинет с начальным капиталом</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <i class="fas fa-coins step-icon"></i>
+                    <h3>Получайте жетоны</h3>
+                    <p>Участвуйте в турнирах и матчах, получайте жетоны за активность</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <i class="fas fa-hand-holding-usd step-icon"></i>
+                    <h3>Делайте ставки</h3>
+                    <p>Ставьте до 50% от баланса на предстоящие матчи</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <i class="fas fa-gift step-icon"></i>
+                    <h3>Тратьте выигрыш</h3>
+                    <p>Покупайте бонусы в магазине: рейтинг, отмена штрафов и др.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Футер -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-table-tennis-paddle-ball"></i> Теннисная Лига</h3>
+                    <p>Платформа для ставок на настольный теннис с использованием виртуальной валюты</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Навигация</h4>
+                    <a href="#">Главная</a>
+                    <a href="#matches">Матчи</a>
+                    <a href="#shop">Магазин</a>
+                    <a href="#rules">Правила</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Аккаунт</h4>
+                    <a href="#login" onclick="openModal('loginModal')">Личный кабинет</a>
+                    <a href="#admin" onclick="openModal('adminModal')">Панель администратора</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Контакты</h4>
+                    <p>Только для участников лиги</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 Лига ставок на настольный теннис. Виртуальная валюта, не имеющая денежной ценности.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Модальные окна -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('loginModal')">&times;</button>
+            <h2><i class="fas fa-user"></i> Вход в личный кабинет</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Логин:</label>
+                    <input type="text" id="loginUsername" required>
+                </div>
+                <div class="form-group">
+                    <label>Пароль:</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="bet-btn" style="width: 100%; margin-top: 1rem;">
+                    <i class="fas fa-sign-in-alt"></i> Войти
+                </button>
+            </form>
         </div>
     </div>
 
-<script>
-// ============================================
-// ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И КОНФИГУРАЦИЯ
-// ============================================
-const SUPABASE_URL = 'https://bqycjfcjtdawyrysgrbw.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxeWNqZmNqdGRhd3lyeXNncmJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MDE5NzAsImV4cCI6MjA4MjE3Nzk3MH0.LEOUMFAd1cz_1e4uawJcaZLPCMqAQHEWM52Oy7fDjsE';
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('adminModal')">&times;</button>
+            <h2><i class="fas fa-cog"></i> Панель администратора</h2>
+            <div class="form-group">
+                <label>Пароль администратора:</label>
+                <input type="password" id="adminPassword">
+            </div>
+            <button onclick="enterAdminPanel()" class="bet-btn" style="width: 100%; margin-top: 1rem;">
+                <i class="fas fa-sign-in-alt"></i> Войти
+            </button>
+        </div>
+    </div>
 
-let supabase = null;
-let currentTournament = null;
-let allPlayers = [];
-let tournamentMatches = [];
-let allBets = [];
-let playerCabinets = [];
+    <div id="playerModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('playerModal')">&times;</button>
+            <h2><i class="fas fa-user-circle"></i> Личный кабинет</h2>
+            <div id="playerInfo"></div>
+        </div>
+    </div>
 
-// ============================================
-// ИНИЦИАЛИЗАЦИЯ
-// ============================================
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Инициализация системы...');
-    
-    // Инициализация Supabase
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
-    // Загрузка начальных данных
-    await loadAllData();
-    
-    // Обновление отображения
-    updateTournamentDisplay();
-    updateBetsDisplay();
-    
-    console.log('✅ Система готова к работе');
-});
+    <script>
+        // Конфигурация Supabase
+        const SUPABASE_URL = 'https://bqycjfcjtdawyrysgrbw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxeWNqZmNqdGRhd3lyeXNncmJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MDE5NzAsImV4cCI6MjA4MjE3Nzk3MH0.LEOUMFAd1cz_1e4uawJcaZLPCMqAQHEWM52Oy7fDjsE';
 
-// ============================================
-// ФУНКЦИИ ЗАГРУЗКИ ДАННЫХ
-// ============================================
-async function loadAllData() {
-    try {
-        console.log('🔄 Загрузка всех данных...');
+        let db;
+        let currentUser = null;
+        let isAdmin = false;
+        let allPlayers = [];
+        let playerCabinets = [];
+        let allMatches = [];
+        let playerPurchases = [];
+        let shopItems = [];
         
-        // Загрузка игроков
-        const { data: playersData } = await supabase
-            .from('players')
-            .select('*')
-            .order('rating', { ascending: false });
-        
-        allPlayers = playersData || [];
-        
-        // Загрузка текущего турнира
-        const { data: tournamentsData } = await supabase
-            .from('tournaments')
-            .select('*')
-            .eq('status', 'active')
-            .order('created_at', { ascending: false })
-            .limit(1);
-        
-        if (tournamentsData && tournamentsData.length > 0) {
-            currentTournament = tournamentsData[0];
-            
-            // Загрузка матчей турнира
-            const { data: matchesData } = await supabase
-                .from('tournament_matches')
-                .select('*')
-                .eq('tournament_id', currentTournament.id);
-            
-            tournamentMatches = matchesData || [];
-            
-            console.log(`✅ Загружен турнир: ${currentTournament.name} с ${tournamentMatches.length} матчами`);
-            
-            // Автоматически создаем ставки для незавершенных матчей
-            await autoCreateBetsForTournament();
-        }
-        
-        // Загрузка ставок
-        const { data: betsData } = await supabase
-            .from('player_bets')
-            .select('*')
-            .order('created_at', { ascending: false });
-        
-        allBets = betsData || [];
-        
-        // Загрузка кабинетов игроков
-        const { data: cabinetsData } = await supabase
-            .from('player_cabinets')
-            .select('*');
-        
-        playerCabinets = cabinetsData || [];
-        
-        console.log('✅ Все данные загружены');
-        
-    } catch (error) {
-        console.error('❌ Ошибка загрузки данных:', error);
-        showNotification('Ошибка загрузки данных', 'error');
-    }
-}
+        // Храним выбранные ставки для каждого матча
+        let selectedBets = {};
 
-// ============================================
-// АВТОМАТИЧЕСКОЕ СОЗДАНИЕ СТАВОК ДЛЯ ТУРНИРА
-// ============================================
-async function autoCreateBetsForTournament() {
-    if (!currentTournament || !tournamentMatches.length) return;
-    
-    try {
-        console.log(`🔍 Проверка необходимости создания ставок для турнира "${currentTournament.name}"`);
-        
-        // Находим незавершенные матчи
-        const pendingMatches = tournamentMatches.filter(match => 
-            !match.winner && match.status !== 'finished'
-        );
-        
-        if (pendingMatches.length === 0) {
-            console.log('✅ Все матчи турнира уже завершены');
-            return;
-        }
-        
-        let createdBetsCount = 0;
-        
-        // Для каждого незавершенного матча
-        for (const match of pendingMatches) {
-            // Проверяем, есть ли уже ставки на этот матч
-            const existingBets = allBets.filter(bet => 
-                bet.match_id === match.id && bet.status === 'active'
-            );
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Инициализация приложения...');
+            db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
-            if (existingBets.length === 0) {
-                // Создаем матч для ставок в таблице bet_matches
-                await createBetMatchFromTournamentMatch(match);
-                createdBetsCount++;
+            setupEventListeners();
+            loadData();
+            
+            // Проверяем сохраненного пользователя
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    updateNavForUser();
+                } catch (e) {
+                    localStorage.removeItem('currentUser');
+                }
             }
-        }
-        
-        if (createdBetsCount > 0) {
-            console.log(`✅ Автоматически создано ставок для ${createdBetsCount} матчей`);
-            // Перезагружаем данные ставок
-            await loadAllData();
-        }
-        
-    } catch (error) {
-        console.error('❌ Ошибка автоматического создания ставок:', error);
-    }
-}
+        });
 
-// Создание матча для ставок на основе турнирного матча
-async function createBetMatchFromTournamentMatch(tournamentMatch) {
-    try {
-        // Находим игроков
-        const player1 = allPlayers.find(p => p.name === tournamentMatch.player1);
-        const player2 = allPlayers.find(p => p.name === tournamentMatch.player2);
-        
-        if (!player1 || !player2) {
-            console.error('❌ Не найден один из игроков:', tournamentMatch.player1, tournamentMatch.player2);
-            return;
-        }
-        
-        // Создаем уникальный ID для матча ставок
-        const betMatchId = `bet_${tournamentMatch.id}`;
-        
-        // Рассчитываем коэффициенты на основе рейтингов
-        const rating1 = player1.rating || 1000;
-        const rating2 = player2.rating || 1000;
-        const diff = Math.abs(rating1 - rating2);
-        
-        // Логика расчета коэффициентов
-        let player1Odds, player2Odds;
-        
-        if (diff < 50) {
-            player1Odds = 1.8;
-            player2Odds = 1.9;
-        } else if (diff < 100) {
-            if (rating1 > rating2) {
-                player1Odds = 1.6;
-                player2Odds = 2.2;
-            } else {
-                player1Odds = 2.2;
-                player2Odds = 1.6;
-            }
-        } else if (diff < 150) {
-            if (rating1 > rating2) {
-                player1Odds = 1.5;
-                player2Odds = 2.5;
-            } else {
-                player1Odds = 2.5;
-                player2Odds = 1.5;
-            }
-        } else {
-            if (rating1 > rating2) {
-                player1Odds = 1.4;
-                player2Odds = 2.8;
-            } else {
-                player1Odds = 2.8;
-                player2Odds = 1.4;
-            }
-        }
-        
-        // Создаем матч для ставок
-        const betMatchData = {
-            id: betMatchId,
-            player1: tournamentMatch.player1,
-            player2: tournamentMatch.player2,
-            player1_rating: rating1,
-            player2_rating: rating2,
-            tournament_id: currentTournament.id,
-            tournament_match_id: tournamentMatch.id,
-            date: tournamentMatch.created_at || new Date().toISOString(),
-            status: 'pending',
-            odds: {
-                player1: player1Odds,
-                player2: player2Odds
-            },
-            created_at: new Date().toISOString()
-        };
-        
-        // Сохраняем в базу
-        const { error } = await supabase
-            .from('bet_matches')
-            .upsert([betMatchData], { onConflict: 'id' });
-        
-        if (error) {
-            console.error('❌ Ошибка создания матча для ставок:', error);
-            return;
-        }
-        
-        console.log(`✅ Создан матч для ставок: ${tournamentMatch.player1} vs ${tournamentMatch.player2}`);
-        
-        // Уведомляем всех игроков о новых ставках
-        notifyPlayersAboutNewBets(betMatchData);
-        
-    } catch (error) {
-        console.error('❌ Ошибка создания матча для ставок:', error);
-    }
-}
-
-// Уведомление игроков о новых ставках
-function notifyPlayersAboutNewBets(betMatch) {
-    // Здесь может быть реализована система уведомлений
-    console.log(`🔔 Новые ставки доступны: ${betMatch.player1} vs ${betMatch.player2}`);
-    
-    // Можно добавить:
-    // 1. Push-уведомления
-    // 2. Email рассылку
-    // 3. Сообщения в чате
-}
-
-// ============================================
-// АВТОМАТИЧЕСКИЙ РАСЧЕТ СТАВОК ПРИ ЗАВЕРШЕНИИ МАТЧА
-// ============================================
-async function autoCalculateBetsForFinishedMatch(tournamentMatch) {
-    if (!tournamentMatch.winner) return;
-    
-    try {
-        console.log(`🧮 Начинаем расчет ставок для матча ${tournamentMatch.id}`);
-        
-        // Находим соответствующий матч для ставок
-        const betMatchId = `bet_${tournamentMatch.id}`;
-        const { data: betMatches } = await supabase
-            .from('bet_matches')
-            .select('*')
-            .eq('id', betMatchId);
-        
-        if (!betMatches || betMatches.length === 0) {
-            console.log('❌ Матч для ставок не найден');
-            return;
-        }
-        
-        const betMatch = betMatches[0];
-        
-        // Находим все активные ставки на этот матч
-        const { data: activeBets } = await supabase
-            .from('player_bets')
-            .select('*')
-            .eq('match_id', betMatchId)
-            .eq('status', 'active');
-        
-        if (!activeBets || activeBets.length === 0) {
-            console.log('ℹ️ Нет активных ставок на этот матч');
-            return;
-        }
-        
-        console.log(`📊 Найдено ${activeBets.length} активных ставок для расчета`);
-        
-        let totalWonAmount = 0;
-        let winnersCount = 0;
-        
-        // Обрабатываем каждую ставку
-        for (const bet of activeBets) {
-            let betStatus = 'lost';
-            let winAmount = 0;
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            console.log('Настройка обработчиков событий...');
             
-            // Проверяем, выиграла ли ставка
-            if (bet.bet_on === tournamentMatch.winner) {
-                betStatus = 'won';
-                winAmount = Math.round(bet.amount * bet.odds);
-                totalWonAmount += winAmount;
-                winnersCount++;
+            // Мобильное меню
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('active');
+                });
                 
-                // Начисляем выигрыш игроку
-                await addTokensToPlayer(bet.player_name, winAmount);
+                // Закрытие меню при клике на ссылку
+                const mobileLinks = mobileMenu.querySelectorAll('a');
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        mobileMenu.classList.remove('active');
+                    });
+                });
             }
             
-            // Обновляем статус ставки
-            await supabase
-                .from('player_bets')
-                .update({
-                    status: betStatus,
-                    actual_win: winAmount,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', bet.id);
-        }
-        
-        // Обновляем статус матча для ставок
-        await supabase
-            .from('bet_matches')
-            .update({
-                status: 'finished',
-                result: tournamentMatch.winner,
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', betMatchId);
-        
-        console.log(`✅ Расчет завершен. Выиграло ставок: ${winnersCount}, Общий выигрыш: ${totalWonAmount} жетонов`);
-        
-        // Показываем уведомление
-        showNotification(`Расчет ставок завершен! ${winnersCount} игроков выиграли ${totalWonAmount} жетонов`, 'success');
-        
-        // Перезагружаем данные
-        await loadAllData();
-        updateBetsDisplay();
-        
-    } catch (error) {
-        console.error('❌ Ошибка расчета ставок:', error);
-        showNotification('Ошибка расчета ставок', 'error');
-    }
-}
-
-// ============================================
-// ФУНКЦИИ ИНТЕРФЕЙСА
-// ============================================
-function openTab(tabName) {
-    // Скрыть все вкладки
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    
-    // Убрать активный класс со всех кнопок
-    document.querySelectorAll('.tab').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // Показать выбранную вкладку
-    document.getElementById(tabName).classList.add('active');
-    
-    // Активировать кнопку
-    event.target.classList.add('active');
-}
-
-function updateTournamentDisplay() {
-    const container = document.getElementById('currentTournament');
-    
-    if (!currentTournament) {
-        container.innerHTML = '<div class="loading">Нет активного турнира</div>';
-        return;
-    }
-    
-    let html = `
-        <div class="tournament-card">
-            <h3>${currentTournament.name}</h3>
-            <p>Тип: ${currentTournament.type_name}</p>
-            <p>Статус: ${currentTournament.status === 'active' ? 'Активен' : 'Завершен'}</p>
-            <p>Участников: ${currentTournament.players ? currentTournament.players.length : 0}</p>
-            <p>Матчей: ${tournamentMatches.length}</p>
+            // Кнопки входа
+            const loginBtn = document.getElementById('loginBtn');
+            const mobileLoginBtn = document.getElementById('mobileLoginBtn');
             
-            <h4>Матчи турнира:</h4>
-    `;
-    
-    if (tournamentMatches.length === 0) {
-        html += '<p>Матчей пока нет</p>';
-    } else {
-        tournamentMatches.forEach(match => {
-            const winnerText = match.winner ? `🏆 Победитель: ${match.winner}` : '⏳ Ожидается';
-            html += `
-                <div class="match-item">
-                    <div>${match.player1} vs ${match.player2}</div>
-                    <div>${winnerText}</div>
-                    <div>
-                        ${!match.winner ? 
-                            `<button onclick="completeMatch('${match.id}', '${match.player1}')">П1</button>
-                             <button onclick="completeMatch('${match.id}', '${match.player2}')">П2</button>` : 
-                            '✅ Завершен'
+            if (loginBtn) {
+                loginBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (currentUser) {
+                        showPlayerInfo();
+                    } else {
+                        openModal('loginModal');
+                    }
+                });
+            }
+            
+            if (mobileLoginBtn) {
+                mobileLoginBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (currentUser) {
+                        showPlayerInfo();
+                    } else {
+                        openModal('loginModal');
+                    }
+                });
+            }
+            
+            // Кнопки админа
+            const adminBtn = document.getElementById('adminBtn');
+            const mobileAdminBtn = document.getElementById('mobileAdminBtn');
+            
+            if (adminBtn) {
+                adminBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openModal('adminModal');
+                });
+            }
+            
+            if (mobileAdminBtn) {
+                mobileAdminBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openModal('adminModal');
+                });
+            }
+            
+            // Форма входа
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    loginUser();
+                });
+            }
+            
+            // Закрытие модальных окон
+            window.addEventListener('click', function(event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = 'none';
+                }
+            });
+            
+            // Плавная прокрутка
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    const targetId = this.getAttribute('href');
+                    if (targetId && targetId !== '#') {
+                        const targetElement = document.querySelector(targetId);
+                        if (targetElement) {
+                            e.preventDefault();
+                            targetElement.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
                         }
+                    }
+                });
+            });
+        }
+
+        // Загрузка данных
+        async function loadData() {
+            try {
+                console.log('Загрузка данных...');
+                await Promise.all([
+                    loadPlayersData(),
+                    loadMatchesData(),
+                    loadPurchasesData(),
+                    updateStats(),
+                    loadLeaderboard(),
+                    loadShopItems()
+                ]);
+                console.log('Данные успешно загружены');
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+                showNotification('Ошибка загрузки данных: ' + error.message, 'error');
+            }
+        }
+
+        // Загрузка игроков
+        async function loadPlayersData() {
+            try {
+                const [playersResponse, cabinetsResponse] = await Promise.all([
+                    db.from('players').select('*').order('rating', { ascending: false }),
+                    db.from('player_cabinets').select('*')
+                ]);
+                
+                allPlayers = playersResponse.data || [];
+                playerCabinets = cabinetsResponse.data || [];
+                
+                console.log(`Загружено игроков: ${allPlayers.length}, кабинетов: ${playerCabinets.length}`);
+            } catch (error) {
+                console.error('Ошибка загрузки игроков:', error);
+                allPlayers = [];
+                playerCabinets = [];
+            }
+        }
+
+        // Загрузка покупок
+        async function loadPurchasesData() {
+            try {
+                const { data, error } = await db
+                    .from('player_purchases')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    // Если таблица не существует, создадим ее позже
+                    console.log('Таблица покупок не найдена, будет создана при первой покупке');
+                    playerPurchases = [];
+                } else {
+                    playerPurchases = data || [];
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки покупок:', error);
+                playerPurchases = [];
+            }
+        }
+
+        // Загрузка магазина
+        function loadShopItems() {
+            shopItems = [
+                {
+                    id: 'buy_rating_10',
+                    name: 'Купить рейтинг',
+                    description: 'Купить 10 очков рейтинга за 100 жетонов',
+                    price: 100,
+                    type: 'rating',
+                    effect: { rating: 10 },
+                    icon: 'trophy',
+                    iconClass: 'rating'
+                },
+                {
+                    id: 'skip_penalty_removal',
+                    name: 'Снятие штрафа за пропуск',
+                    description: 'Убрать штраф за один пропущенный матч',
+                    price: 100,
+                    type: 'skip_penalty',
+                    effect: { skips: 1 },
+                    icon: 'shield-alt',
+                    iconClass: 'skip'
+                },
+                {
+                    id: 'double_tokens_next_match',
+                    name: 'Дубликатор жетонов',
+                    description: 'На следующий матч ставки приносят 2x жетонов',
+                    price: 50,
+                    type: 'double_tokens',
+                    effect: { multiplier: 2, matches: 1 },
+                    icon: 'coins',
+                    iconClass: 'double',
+                    featured: true
+                }
+            ];
+            
+            loadShop();
+        }
+
+        // Отображение магазина
+        function loadShop() {
+            const grid = document.getElementById('shop-grid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            shopItems.forEach(item => {
+                const shopItem = document.createElement('div');
+                shopItem.className = `shop-item ${item.featured ? 'featured' : ''}`;
+                
+                shopItem.innerHTML = `
+                    <div class="item-icon ${item.iconClass}">
+                        <i class="fas fa-${item.icon}"></i>
+                    </div>
+                    <h3 style="margin-bottom: 0.5rem;">${item.name}</h3>
+                    <div class="item-price">
+                        <i class="fas fa-coins"></i> ${item.price}
+                    </div>
+                    <div class="item-description">
+                        ${item.description}
+                    </div>
+                    ${currentUser ? `
+                        <button onclick="buyItem('${item.id}')" class="bet-btn ${item.featured ? 'warning' : 'success'}" style="width: 100%;">
+                            <i class="fas fa-shopping-cart"></i> Купить
+                        </button>
+                    ` : `
+                        <button onclick="showNotification('Войдите, чтобы покупать товары', 'error')" class="bet-btn" style="width: 100%;" disabled>
+                            <i class="fas fa-lock"></i> Требуется вход
+                        </button>
+                    `}
+                `;
+                
+                grid.appendChild(shopItem);
+            });
+        }
+
+        // Загрузка матчей
+        async function loadMatchesData() {
+            try {
+                const { data, error } = await db
+                    .from('bet_matches')
+                    .select('*')
+                    .in('status', ['live', 'pending', 'finished'])
+                    .order('date', { ascending: false });
+                
+                if (error) throw error;
+                allMatches = data || [];
+                loadLiveMatches();
+            } catch (error) {
+                console.error('Ошибка загрузки матчей:', error);
+                allMatches = [];
+            }
+        }
+
+        // Обновление статистики
+        async function updateStats() {
+            try {
+                // Игроки
+                document.getElementById('total-players').textContent = allPlayers.length;
+                
+                // LIVE матчи
+                const liveMatches = allMatches.filter(m => m.status === 'live');
+                document.getElementById('live-matches').textContent = liveMatches.length;
+                
+                // Жетоны
+                const totalTokens = playerCabinets.reduce((sum, pc) => sum + (pc.tokens || 0), 0);
+                document.getElementById('total-bets').textContent = totalTokens;
+            } catch (error) {
+                console.error('Ошибка обновления статистики:', error);
+            }
+        }
+
+        // Загрузка LIVE матчей
+        function loadLiveMatches() {
+            const grid = document.getElementById('live-matches-grid');
+            if (!grid) return;
+            
+            const liveMatches = allMatches.filter(m => m.status === 'live' || m.status === 'pending');
+            
+            if (liveMatches.length === 0) {
+                grid.innerHTML = '<div class="loading">Нет активных матчей</div>';
+                return;
+            }
+            
+            grid.innerHTML = '';
+            liveMatches.forEach(match => {
+                const matchCard = createMatchCard(match);
+                grid.appendChild(matchCard);
+            });
+        }
+
+        // Создание карточки матча
+        function createMatchCard(match) {
+            const matchCard = document.createElement('div');
+            matchCard.className = 'match-card';
+            
+            const player1 = allPlayers.find(p => p.name === match.player1);
+            const player2 = allPlayers.find(p => p.name === match.player2);
+            
+            const player1Rating = player1 ? parseInt(player1.rating) : 1000;
+            const player2Rating = player2 ? parseInt(player2.rating) : 1000;
+            
+            const odds = calculateOdds(player1Rating, player2Rating);
+            
+            matchCard.innerHTML = `
+                <div class="match-header">
+                    <div>
+                        <small>${new Date(match.date).toLocaleDateString('ru-RU')}</small>
+                    </div>
+                    <span class="match-status ${match.status === 'live' ? 'status-live' : ''}">
+                        ${match.status === 'live' ? 'LIVE' : 'Скоро'}
+                    </span>
+                </div>
+                <div class="match-players">
+                    <div class="player">
+                        ${player1 && player1.avatar ? 
+                            `<img src="${player1.avatar}" alt="${match.player1}" class="player-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                            ''
+                        }
+                        <div class="player-avatar" style="${player1 && player1.avatar ? 'display: none;' : ''}">
+                            ${match.player1 ? match.player1.charAt(0).toUpperCase() : '?'}
+                        </div>
+                        <div class="player-name">${match.player1 || 'Игрок 1'}</div>
+                        <div class="player-rating">${player1Rating}</div>
+                    </div>
+                    <div class="vs">VS</div>
+                    <div class="player">
+                        ${player2 && player2.avatar ? 
+                            `<img src="${player2.avatar}" alt="${match.player2}" class="player-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                            ''
+                        }
+                        <div class="player-avatar" style="${player2 && player2.avatar ? 'display: none;' : ''}">
+                            ${match.player2 ? match.player2.charAt(0).toUpperCase() : '?'}
+                        </div>
+                        <div class="player-name">${match.player2 || 'Игрок 2'}</div>
+                        <div class="player-rating">${player2Rating}</div>
+                    </div>
+                </div>
+                <div class="match-odds">
+                    <button class="odds-btn" onclick="selectBet('${match.id}', 'player1', ${odds.player1}, '${match.player1}')">
+                        П1
+                        <span class="odds-value">${odds.player1.toFixed(2)}</span>
+                    </button>
+                    <button class="odds-btn" onclick="selectBet('${match.id}', 'player2', ${odds.player2}, '${match.player2}')">
+                        П2
+                        <span class="odds-value">${odds.player2.toFixed(2)}</span>
+                    </button>
+                </div>
+                ${match.status === 'live' && currentUser ? `
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <input type="number" id="bet-amount-${match.id}" placeholder="Сумма" min="1" max="${Math.floor((currentUser.tokens || 0) * 0.5)}" style="flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem;">
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button onclick="placeBet('${match.id}')" class="bet-btn" style="flex: 1; padding: 0.5rem;">
+                            <i class="fas fa-coins"></i> Сделать ставку
+                        </button>
+                    </div>
+                    <div id="bet-info-${match.id}" style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--gray);">
+                        ${selectedBets[match.id] ? `Выбрано: ${selectedBets[match.id].playerName} (коэф. ${selectedBets[match.id].odds.toFixed(2)})` : 'Выберите игрока'}
+                    </div>
+                </div>
+                ` : ''}
+            `;
+            
+            // Если есть сохраненный выбор для этого матча, выделяем кнопку
+            setTimeout(() => {
+                if (selectedBets[match.id]) {
+                    const oddsBtns = matchCard.querySelectorAll('.odds-btn');
+                    oddsBtns.forEach(btn => {
+                        if (btn.textContent.includes(selectedBets[match.id].betOn === 'player1' ? 'П1' : 'П2')) {
+                            btn.classList.add('selected');
+                        }
+                    });
+                }
+            }, 100);
+            
+            return matchCard;
+        }
+
+        // Выбор ставки
+        function selectBet(matchId, betOn, odds, playerName) {
+            const matchCard = document.querySelector(`#bet-amount-${matchId}`)?.closest('.match-card');
+            if (!matchCard) return;
+            
+            // Убираем выделение со всех кнопок
+            const oddsBtns = matchCard.querySelectorAll('.odds-btn');
+            oddsBtns.forEach(btn => btn.classList.remove('selected'));
+            
+            // Выделяем выбранную кнопку
+            const selectedBtn = Array.from(oddsBtns).find(btn => 
+                btn.textContent.includes(betOn === 'player1' ? 'П1' : 'П2')
+            );
+            if (selectedBtn) {
+                selectedBtn.classList.add('selected');
+            }
+            
+            // Сохраняем выбранную ставку
+            selectedBets[matchId] = {
+                betOn: betOn,
+                odds: odds,
+                playerName: playerName
+            };
+            
+            // Обновляем информацию о выборе
+            const betInfo = document.getElementById(`bet-info-${matchId}`);
+            if (betInfo) {
+                betInfo.textContent = `Выбрано: ${playerName} (коэф. ${odds.toFixed(2)})`;
+            }
+            
+            // Обновляем максимальную сумму ставки
+            const input = document.getElementById(`bet-amount-${matchId}`);
+            if (input && currentUser) {
+                const maxBet = Math.floor((currentUser.tokens || 0) * 0.5);
+                input.max = maxBet;
+                input.placeholder = `Сумма (макс: ${maxBet})`;
+            }
+        }
+
+        // Расчет коэффициентов
+        function calculateOdds(rating1, rating2) {
+            const diff = Math.abs(rating1 - rating2);
+            let favoriteOdds = 1.3;
+            let underdogOdds = 3.5;
+            
+            if (diff < 100) {
+                favoriteOdds = 1.8;
+                underdogOdds = 1.9;
+            } else if (diff < 200) {
+                favoriteOdds = 1.5;
+                underdogOdds = 2.5;
+            } else if (diff < 300) {
+                favoriteOdds = 1.4;
+                underdogOdds = 3.0;
+            }
+            
+            if (rating1 > rating2) {
+                return {
+                    player1: favoriteOdds,
+                    player2: underdogOdds,
+                    favorite: 'player1'
+                };
+            } else {
+                return {
+                    player1: underdogOdds,
+                    player2: favoriteOdds,
+                    favorite: 'player2'
+                };
+            }
+        }
+
+        // Загрузка таблицы лидеров
+        function loadLeaderboard() {
+            const tbody = document.getElementById('leaderboard-body');
+            if (!tbody) return;
+            
+            if (allPlayers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="loading">Нет данных об игроках</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            
+            allPlayers.slice(0, 10).forEach((player, index) => {
+                const matches = parseInt(player.matches) || 0;
+                const wins = parseInt(player.wins) || 0;
+                const winRate = matches > 0 ? Math.round((wins / matches) * 100) : 0;
+                const cabinet = playerCabinets.find(pc => pc.player_name === player.name);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="player-rank">${index + 1}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            ${player.avatar ? 
+                                `<img src="${player.avatar}" alt="${player.name}" class="player-avatar-small" onerror="this.style.display='none'">` : 
+                                ''
+                            }
+                            <div>${player.name}</div>
+                        </div>
+                    </td>
+                    <td><strong>${player.rating || 1000}</strong></td>
+                    <td>${matches}</td>
+                    <td>${wins}</td>
+                    <td>${winRate}%</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Вход пользователя
+        async function loginUser() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            
+            if (!username || !password) {
+                showNotification('Введите логин и пароль', 'error');
+                return;
+            }
+            
+            try {
+                const { data, error } = await db
+                    .from('player_cabinets')
+                    .select('*')
+                    .eq('login', username)
+                    .eq('password', password);
+                
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    currentUser = data[0];
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    showNotification('Вход выполнен успешно!', 'success');
+                    closeModal('loginModal');
+                    updateNavForUser();
+                    loadLiveMatches();
+                    loadShop();
+                } else {
+                    showNotification('Неверный логин или пароль', 'error');
+                }
+            } catch (error) {
+                console.error('Ошибка входа:', error);
+                showNotification('Ошибка входа: ' + error.message, 'error');
+            }
+        }
+
+        // Покупка товара
+        async function buyItem(itemId) {
+            if (!currentUser) {
+                showNotification('Войдите, чтобы покупать товары', 'error');
+                return;
+            }
+            
+            const item = shopItems.find(i => i.id === itemId);
+            if (!item) {
+                showNotification('Товар не найден', 'error');
+                return;
+            }
+            
+            if ((currentUser.tokens || 0) < item.price) {
+                showNotification(`Недостаточно жетонов. Нужно: ${item.price}, у вас: ${currentUser.tokens || 0}`, 'error');
+                return;
+            }
+            
+            try {
+                // Списываем жетоны
+                const newTokens = (currentUser.tokens || 0) - item.price;
+                
+                const { error: updateError } = await db
+                    .from('player_cabinets')
+                    .update({ tokens: newTokens })
+                    .eq('id', currentUser.id);
+                
+                if (updateError) throw updateError;
+                
+                // Обновляем данные игрока в зависимости от типа покупки
+                if (item.type === 'rating') {
+                    const player = allPlayers.find(p => p.name === currentUser.player_name);
+                    if (player) {
+                        const newRating = parseInt(player.rating) + item.effect.rating;
+                        await db
+                            .from('players')
+                            .update({ rating: newRating })
+                            .eq('name', currentUser.player_name);
+                    }
+                }
+                
+                // Создаем запись о покупке
+                const purchaseId = 'purchase_' + Date.now().toString(36);
+                
+                try {
+                    const { error: purchaseError } = await db
+                        .from('player_purchases')
+                        .insert([{
+                            id: purchaseId,
+                            player_name: currentUser.player_name,
+                            item_id: itemId,
+                            item_name: item.name,
+                            price: item.price,
+                            type: item.type,
+                            effect: item.effect,
+                            created_at: new Date().toISOString()
+                        }]);
+                    
+                    if (purchaseError) {
+                        // Если таблица не существует, создаем ее
+                        if (purchaseError.message.includes("Could not find the table")) {
+                            // Пропускаем, покупка все равно зафиксирована в обновлении баланса
+                            console.log('Таблица покупок не существует, создадим позже');
+                        } else {
+                            throw purchaseError;
+                        }
+                    }
+                } catch (error) {
+                    console.log('Ошибка записи покупки:', error.message);
+                    // Продолжаем, так как основная операция (списание жетонов) выполнена
+                }
+                
+                // Обновляем данные пользователя
+                currentUser.tokens = newTokens;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Перезагружаем данные
+                await loadPlayersData();
+                await loadPurchasesData();
+                
+                showNotification(`Вы успешно купили "${item.name}" за ${item.price} жетонов!`, 'success');
+                
+                // Обновляем магазин для отображения измененного баланса
+                loadShop();
+                
+                // Обновляем личный кабинет если он открыт
+                if (document.getElementById('playerModal').style.display === 'block') {
+                    showPlayerInfo();
+                }
+                
+            } catch (error) {
+                console.error('Ошибка покупки:', error);
+                showNotification('Ошибка покупки: ' + error.message, 'error');
+            }
+        }
+
+        // Вход администратора
+        function enterAdminPanel() {
+            const password = document.getElementById('adminPassword').value;
+            const ADMIN_PASSWORD = 'admin123';
+            
+            if (password === ADMIN_PASSWORD) {
+                isAdmin = true;
+                showNotification('Добро пожаловать в панель администратора!', 'success');
+                closeModal('adminModal');
+                showAdminPanel();
+            } else {
+                showNotification('Неверный пароль администратора', 'error');
+            }
+        }
+
+        // Показать панель администратора
+        async function showAdminPanel() {
+            try {
+                // Загружаем актуальные данные
+                await loadPlayersData();
+                await loadMatchesData();
+                await loadPurchasesData();
+                
+                const adminPanel = document.createElement('div');
+                adminPanel.className = 'admin-panel';
+                
+                adminPanel.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid var(--gray-light);">
+                        <h2 style="display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-cog"></i> Панель администратора
+                        </h2>
+                        <button onclick="closeAdminPanel()" class="bet-btn danger" style="padding: 0.5rem 1rem;">
+                            <i class="fas fa-times"></i> Закрыть
+                        </button>
+                    </div>
+                    
+                    <div class="admin-grid">
+                        <!-- Управление игроками -->
+                        <div class="admin-section">
+                            <h3><i class="fas fa-users"></i> Управление игроками (${allPlayers.length})</h3>
+                            <div class="player-list">
+                                ${allPlayers.map(player => {
+                                    const cabinet = playerCabinets.find(pc => pc.player_name === player.name);
+                                    const playerPurchasesList = playerPurchases.filter(p => p.player_name === player.name);
+                                    const winRate = player.matches > 0 ? Math.round((player.wins / player.matches) * 100) : 0;
+                                    return `
+                                    <div class="player-item">
+                                        <div class="player-info">
+                                            <strong>${player.name}</strong><br>
+                                            <small>
+                                                Рейтинг: ${player.rating} | 
+                                                Матчи: ${player.matches} | 
+                                                Победы: ${player.wins} (${winRate}%)<br>
+                                                ${cabinet ? `Жетоны: ${cabinet.tokens || 0}` : '<span style="color: orange;">Кабинет не создан</span>'}
+                                            </small>
+                                            ${playerPurchasesList.length > 0 ? `
+                                                <div class="player-purchases">
+                                                    <strong>Покупки (${playerPurchasesList.length}):</strong>
+                                                    ${playerPurchasesList.slice(0, 2).map(purchase => `
+                                                        <div class="purchase-item">
+                                                            <span>${purchase.item_name}</span>
+                                                            <span>-${purchase.price} жетонов</span>
+                                                        </div>
+                                                    `).join('')}
+                                                    ${playerPurchasesList.length > 2 ? `<small>... и еще ${playerPurchasesList.length - 2}</small>` : ''}
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                        <div class="player-actions">
+                                            ${cabinet ? `
+                                                <button class="action-btn add-tokens" onclick="showAddTokensModal('${cabinet.id}', '${player.name}')">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            ` : `
+                                                <button class="action-btn add-tokens" onclick="createCabinet('${player.name}')">
+                                                    <i class="fas fa-user-plus"></i>
+                                                </button>
+                                            `}
+                                            <button class="action-btn add-tokens" onclick="showPlayerPurchases('${player.name}')" title="История покупок">
+                                                <i class="fas fa-history"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                        
+                        <!-- Создание матча -->
+                        <div class="admin-section">
+                            <h3><i class="fas fa-trophy"></i> Создать матч</h3>
+                            <div class="form-group">
+                                <label>Игрок 1:</label>
+                                <select id="matchPlayer1" style="width: 100%;">
+                                    <option value="">Выберите игрока</option>
+                                    ${allPlayers.map(p => `
+                                        <option value="${p.name}">${p.name} (Рейтинг: ${p.rating})</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Игрок 2:</label>
+                                <select id="matchPlayer2" style="width: 100%;">
+                                    <option value="">Выберите игрока</option>
+                                    ${allPlayers.map(p => `
+                                        <option value="${p.name}">${p.name} (Рейтинг: ${p.rating})</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Дата и время:</label>
+                                <input type="datetime-local" id="matchDate" value="${new Date(Date.now() + 3600000).toISOString().slice(0, 16)}" style="width: 100%;">
+                            </div>
+                            <button onclick="createMatch()" class="bet-btn" style="width: 100%;">
+                                <i class="fas fa-plus"></i> Создать матч
+                            </button>
+                        </div>
+                        
+                        <!-- Управление матчами -->
+                        <div class="admin-section">
+                            <h3><i class="fas fa-list"></i> Управление матчами (${allMatches.length})</h3>
+                            <div class="player-list">
+                                ${allMatches.map(match => {
+                                    const player1 = allPlayers.find(p => p.name === match.player1);
+                                    const player2 = allPlayers.find(p => p.name === match.player2);
+                                    return `
+                                    <div class="player-item">
+                                        <div class="player-info">
+                                            <strong>${match.player1} vs ${match.player2}</strong><br>
+                                            <small>
+                                                ${new Date(match.date).toLocaleString('ru-RU')} | 
+                                                Статус: ${getStatusText(match.status)}<br>
+                                                ${match.status === 'finished' ? `Результат: ${match.result}` : ''}
+                                            </small>
+                                        </div>
+                                        <div class="player-actions">
+                                            ${match.status !== 'finished' ? `
+                                                <button class="action-btn add-tokens small" onclick="updateMatchStatus('${match.id}', 'live')">
+                                                    ${match.status === 'live' ? '⏸️' : '▶️'}
+                                                </button>
+                                                <button class="action-btn add-tokens small" onclick="finalizeMatch('${match.id}', 'player1')">
+                                                    П1
+                                                </button>
+                                                <button class="action-btn add-tokens small" onclick="finalizeMatch('${match.id}', 'player2')">
+                                                    П2
+                                                </button>
+                                            ` : '✅'}
+                                        </div>
+                                    </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                        
+                        <!-- Пополнение жетонов -->
+                        <div class="admin-section">
+                            <h3><i class="fas fa-coins"></i> Пополнение жетонов</h3>
+                            <div class="form-group">
+                                <label>Игрок с кабинетом:</label>
+                                <select id="playerForTokens" style="width: 100%;">
+                                    <option value="">Выберите игрока</option>
+                                    ${playerCabinets.map(pc => `
+                                        <option value="${pc.id}">${pc.player_name} (сейчас: ${pc.tokens || 0})</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Количество жетонов:</label>
+                                <input type="number" id="tokensAmount" value="100" min="1" style="width: 100%;">
+                            </div>
+                            <button onclick="addTokensToPlayer()" class="bet-btn success" style="width: 100%;">
+                                <i class="fas fa-plus"></i> Добавить жетоны
+                            </button>
+                        </div>
+                        
+                        <!-- Список всех покупок -->
+                        <div class="admin-section">
+                            <h3><i class="fas fa-shopping-cart"></i> Все покупки (${playerPurchases.length})</h3>
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                                    <input type="text" id="searchPurchases" placeholder="Поиск по игроку..." style="flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem;">
+                                    <select id="filterPurchaseType" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem;">
+                                        <option value="all">Все типы</option>
+                                        <option value="rating">Рейтинг</option>
+                                        <option value="skip_penalty">Пропуск</option>
+                                        <option value="double_tokens">Дубликатор</option>
+                                    </select>
+                                    <button onclick="loadAllPurchases()" class="action-btn add-tokens">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="purchasesList" class="player-list" style="max-height: 400px; overflow-y: auto;">
+                                <div class="loading">
+                                    <i class="fas fa-spinner fa-spin"></i> Загрузка покупок...
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Список всех ставок -->
+                        <div class="admin-section">
+                            <h3><i class="fas fa-list-check"></i> Все ставки</h3>
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                                    <input type="text" id="searchBets" placeholder="Поиск по игроку..." style="flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem;">
+                                    <select id="filterBetStatus" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem;">
+                                        <option value="all">Все статусы</option>
+                                        <option value="active">Активные</option>
+                                        <option value="won">Выигранные</option>
+                                        <option value="lost">Проигранные</option>
+                                        <option value="cancelled">Отмененные</option>
+                                    </select>
+                                    <button onclick="loadAllBets()" class="action-btn add-tokens">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="betsList" class="player-list" style="max-height: 400px; overflow-y: auto;">
+                                <div class="loading">
+                                    <i class="fas fa-spinner fa-spin"></i> Загрузка ставок...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(adminPanel);
+                
+                // Загружаем данные при открытии админки
+                setTimeout(() => {
+                    loadAllPurchases();
+                    loadAllBets();
+                }, 100);
+                
+            } catch (error) {
+                console.error('Ошибка загрузки панели администратора:', error);
+                showNotification('Ошибка загрузки панели администратора: ' + error.message, 'error');
+            }
+        }
+
+        // Показать покупки игрока
+        function showPlayerPurchases(playerName) {
+            const playerPurchasesList = playerPurchases.filter(p => p.player_name === playerName);
+            
+            if (playerPurchasesList.length === 0) {
+                showNotification(`У игрока ${playerName} нет покупок`, 'info');
+                return;
+            }
+            
+            let purchasesHtml = `
+                <div style="background: white; padding: 1rem; border-radius: 0.5rem; max-height: 400px; overflow-y: auto;">
+                    <h3 style="margin-bottom: 1rem;">Покупки игрока: ${playerName}</h3>
+                    <div style="display: grid; gap: 0.5rem;">
+                        ${playerPurchasesList.map(purchase => `
+                            <div style="padding: 0.75rem; background: #f8fafc; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                    <strong>${purchase.item_name}</strong>
+                                    <span style="color: var(--warning); font-weight: bold;">
+                                        <i class="fas fa-coins"></i> ${purchase.price}
+                                    </span>
+                                </div>
+                                <div style="font-size: 0.85rem; color: var(--gray);">
+                                    Тип: ${getPurchaseTypeText(purchase.type)}<br>
+                                    Дата: ${new Date(purchase.created_at).toLocaleString('ru-RU')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; text-align: center;">
+                        <strong>Всего покупок: ${playerPurchasesList.length}</strong><br>
+                        <small>Общая стоимость: ${playerPurchasesList.reduce((sum, p) => sum + p.price, 0)} жетонов</small>
                     </div>
                 </div>
             `;
-        });
-    }
-    
-    html += `
-            <div style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 5px;">
-                <strong>🎯 Интеграция со ставками:</strong>
-                <p>Создано ставок: ${allBets.filter(b => b.match_id.includes(currentTournament.id)).length}</p>
-                <button onclick="autoCreateBetsForTournament()" style="margin-top: 10px; padding: 5px 10px; background: #4CAF50; color: white; border: none; border-radius: 3px; cursor: pointer;">
-                    🔄 Создать ставки для всех матчей
-                </button>
-            </div>
-        </div>
-    `;
-    
-    container.innerHTML = html;
-}
-
-function updateBetsDisplay() {
-    const activeContainer = document.getElementById('activeBets');
-    const historyContainer = document.getElementById('betHistory');
-    
-    // Активные ставки
-    const activeBets = allBets.filter(bet => bet.status === 'active');
-    
-    if (activeBets.length === 0) {
-        activeContainer.innerHTML = '<div class="loading">Нет активных ставок</div>';
-    } else {
-        let html = '';
-        activeBets.forEach(bet => {
-            html += `
-                <div class="bet-card">
-                    <h4>Ставка #${bet.id.slice(-6)}</h4>
-                    <p>Игрок: ${bet.player_name}</p>
-                    <p>Матч: ${bet.match_id}</p>
-                    <p>Ставка на: ${bet.bet_on}</p>
-                    <p>Сумма: ${bet.amount} жетонов</p>
-                    <p>Коэффициент: ${bet.odds}</p>
-                    <p>Потенциальный выигрыш: ${Math.round(bet.amount * bet.odds)} жетонов</p>
-                    <p>Статус: <span style="color: orange;">⏳ Ожидает результата</span></p>
-                </div>
-            `;
-        });
-        activeContainer.innerHTML = html;
-    }
-    
-    // История ставок
-    const finishedBets = allBets.filter(bet => bet.status !== 'active');
-    
-    if (finishedBets.length === 0) {
-        historyContainer.innerHTML = '<div class="loading">Нет истории ставок</div>';
-    } else {
-        let html = '';
-        finishedBets.forEach(bet => {
-            const statusColor = bet.status === 'won' ? 'green' : 'red';
-            const statusText = bet.status === 'won' ? '✅ Выиграна' : '❌ Проиграна';
             
-            html += `
-                <div class="bet-card">
-                    <h4>Ставка #${bet.id.slice(-6)}</h4>
-                    <p>Игрок: ${bet.player_name}</p>
-                    <p>Статус: <span style="color: ${statusColor};">${statusText}</span></p>
-                    ${bet.actual_win > 0 ? `<p>Выигрыш: ${bet.actual_win} жетонов</p>` : ''}
-                    <p>Дата: ${new Date(bet.created_at).toLocaleDateString()}</p>
-                </div>
-            `;
-        });
-        historyContainer.innerHTML = html;
-    }
-}
-
-// ============================================
-// ФУНКЦИИ ТУРНИРОВ
-// ============================================
-async function createTournament() {
-    const name = document.getElementById('tournamentName').value;
-    const type = document.getElementById('tournamentType').value;
-    const selectedPlayers = Array.from(document.querySelectorAll('#playerSelection input:checked'))
-                                .map(cb => cb.value.split(' ')[0]); // Берем только имя игрока
-    
-    if (!name || selectedPlayers.length < 3) {
-        showNotification('Введите название и выберите хотя бы 3 игроков', 'error');
-        return;
-    }
-    
-    try {
-        // Создаем турнир
-        const tournamentId = `tournament_${Date.now()}`;
-        const tournamentData = {
-            id: tournamentId,
-            name: name,
-            type: type,
-            type_name: type === 'round_robin_3' ? 'Круговой турнир (3 игрока)' :
-                      type === 'round_robin_4' ? 'Круговой турнир (4 игрока)' :
-                      'Круговой турнир (5 игроков)',
-            players: selectedPlayers,
-            status: 'active',
-            created_at: new Date().toISOString()
-        };
-        
-        const { error: tournamentError } = await supabase
-            .from('tournaments')
-            .upsert([tournamentData], { onConflict: 'id' });
-        
-        if (tournamentError) throw tournamentError;
-        
-        // Создаем матчи для турнира
-        await createTournamentMatches(tournamentId, selectedPlayers);
-        
-        // Обновляем текущий турнир
-        currentTournament = tournamentData;
-        
-        // Автоматически создаем ставки для матчей
-        await autoCreateBetsForTournament();
-        
-        showNotification(`Турнир "${name}" создан! Ставки автоматически сформированы.`, 'success');
-        
-        // Обновляем отображение
-        await loadAllData();
-        updateTournamentDisplay();
-        
-        // Очищаем форму
-        document.getElementById('tournamentName').value = '';
-        document.querySelectorAll('#playerSelection input').forEach(cb => cb.checked = false);
-        
-    } catch (error) {
-        console.error('❌ Ошибка создания турнира:', error);
-        showNotification('Ошибка создания турнира', 'error');
-    }
-}
-
-async function createTournamentMatches(tournamentId, players) {
-    // Создаем все возможные пары матчей для кругового турнира
-    for (let i = 0; i < players.length; i++) {
-        for (let j = i + 1; j < players.length; j++) {
-            const matchId = `${tournamentId}_${players[i]}_${players[j]}`;
-            
-            const matchData = {
-                id: matchId,
-                tournament_id: tournamentId,
-                player1: players[i],
-                player2: players[j],
-                winner: null,
-                status: 'scheduled',
-                created_at: new Date().toISOString()
-            };
-            
-            await supabase
-                .from('tournament_matches')
-                .upsert([matchData], { onConflict: 'id' });
+            showNotificationWithHtml(purchasesHtml, 'info');
         }
-    }
-}
 
-// ============================================
-// ЗАВЕРШЕНИЕ МАТЧА И АВТОРАСЧЕТ СТАВОК
-// ============================================
-async function completeMatch(matchId, winner) {
-    if (!confirm(`Подтвердить победу ${winner}? Это автоматически рассчитает все ставки на этот матч.`)) {
-        return;
-    }
-    
-    try {
-        console.log(`🎮 Завершение матча ${matchId}, победитель: ${winner}`);
-        
-        // Обновляем матч в турнире
-        const { error: matchError } = await supabase
-            .from('tournament_matches')
-            .update({
-                winner: winner,
-                status: 'finished',
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', matchId);
-        
-        if (matchError) throw matchError;
-        
-        // Находим обновленный матч
-        const { data: updatedMatch } = await supabase
-            .from('tournament_matches')
-            .select('*')
-            .eq('id', matchId)
-            .single();
-        
-        if (!updatedMatch) throw new Error('Матч не найден после обновления');
-        
-        // АВТОМАТИЧЕСКИЙ РАСЧЕТ СТАВОК
-        await autoCalculateBetsForFinishedMatch(updatedMatch);
-        
-        showNotification(`Матч завершен! Победитель: ${winner}. Ставки автоматически рассчитаны.`, 'success');
-        
-        // Обновляем отображение
-        await loadAllData();
-        updateTournamentDisplay();
-        
-    } catch (error) {
-        console.error('❌ Ошибка завершения матча:', error);
-        showNotification('Ошибка завершения матча', 'error');
-    }
-}
-
-// ============================================
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-// ============================================
-async function addTokensToPlayer(playerName, amount) {
-    try {
-        // Находим кабинет игрока
-        const { data: cabinet } = await supabase
-            .from('player_cabinets')
-            .select('*')
-            .eq('player_name', playerName)
-            .single();
-        
-        if (!cabinet) {
-            // Создаем кабинет если его нет
-            const newCabinet = {
-                player_name: playerName,
-                login: playerName.toLowerCase().replace(/\s+/g, '_'),
-                password: 'default123',
-                tokens: amount,
-                join_date: new Date().toISOString()
-            };
-            
-            await supabase
-                .from('player_cabinets')
-                .insert([newCabinet]);
-        } else {
-            // Обновляем существующий кабинет
-            const newTokens = (cabinet.tokens || 0) + amount;
-            
-            await supabase
-                .from('player_cabinets')
-                .update({ tokens: newTokens })
-                .eq('player_name', playerName);
-        }
-        
-        console.log(`✅ Начислено ${amount} жетонов игроку ${playerName}`);
-        
-    } catch (error) {
-        console.error('❌ Ошибка начисления жетонов:', error);
-    }
-}
-
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    // Автоматическое удаление через 5 секунд
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.remove();
-        }
-    }, 5000);
-}
-
-// ============================================
-// ФУНКЦИЯ АВТОМАТИЧЕСКОЙ ИНТЕГРАЦИИ (ОДИН ШАГ)
-// ============================================
-async function runAutoIntegration() {
-    console.log('🔄 Запуск автоматической интеграции...');
-    
-    try {
-        // 1. Проверяем наличие активного турнира
-        if (!currentTournament) {
-            showNotification('Создайте турнир для начала интеграции', 'error');
-            openTab('tournaments');
-            return;
-        }
-        
-        // 2. Находим матчи, требующие ставок
-        const matchesNeedingBets = tournamentMatches.filter(match => 
-            !match.winner && 
-            allBets.filter(b => b.match_id === `bet_${match.id}`).length === 0
-        );
-        
-        if (matchesNeedingBets.length === 0) {
-            showNotification('Все матчи уже имеют ставки', 'info');
-            return;
-        }
-        
-        // 3. Автоматически создаем ставки для всех матчей
-        let createdCount = 0;
-        for (const match of matchesNeedingBets) {
-            await createBetMatchFromTournamentMatch(match);
-            createdCount++;
-        }
-        
-        // 4. Находим завершенные матчи без расчета ставок
-        const finishedMatches = tournamentMatches.filter(match => 
-            match.winner && 
-            match.status === 'finished'
-        );
-        
-        let calculatedCount = 0;
-        for (const match of finishedMatches) {
-            // Проверяем, были ли рассчитаны ставки
-            const betMatchId = `bet_${match.id}`;
-            const betMatch = allBets.find(b => b.match_id === betMatchId);
-            
-            if (betMatch && betMatch.status === 'active') {
-                await autoCalculateBetsForFinishedMatch(match);
-                calculatedCount++;
+        // Загрузка всех покупок
+        function loadAllPurchases() {
+            try {
+                const purchasesList = document.getElementById('purchasesList');
+                if (!purchasesList) return;
+                
+                purchasesList.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка покупок...</div>';
+                
+                if (playerPurchases.length === 0) {
+                    purchasesList.innerHTML = `
+                        <div style="padding: 1rem; text-align: center;">
+                            <div style="color: var(--gray); margin-bottom: 0.5rem;">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                Покупок не найдено
+                                <br>
+                                <small>Игроки еще ничего не покупали в магазине</small>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const searchTerm = document.getElementById('searchPurchases').value.toLowerCase();
+                const typeFilter = document.getElementById('filterPurchaseType').value;
+                
+                purchasesList.innerHTML = '';
+                
+                playerPurchases.forEach(purchase => {
+                    // Фильтрация
+                    if (searchTerm && !purchase.player_name.toLowerCase().includes(searchTerm)) return;
+                    if (typeFilter !== 'all' && purchase.type !== typeFilter) return;
+                    
+                    const purchaseItem = document.createElement('div');
+                    purchaseItem.className = 'player-item';
+                    
+                    purchaseItem.innerHTML = `
+                        <div class="player-info">
+                            <strong>${purchase.player_name}</strong>
+                            <br>
+                            <small>
+                                Товар: <strong>${purchase.item_name}</strong><br>
+                                Тип: <span style="color: ${getPurchaseTypeColor(purchase.type)}; font-weight: 600;">
+                                    ${getPurchaseTypeText(purchase.type)}
+                                </span>
+                            </small>
+                            <br>
+                            <small>
+                                Стоимость: <strong style="color: var(--warning);">${purchase.price} жетонов</strong>
+                            </small>
+                            <br>
+                            <small style="color: var(--gray); font-size: 0.7rem;">
+                                ${new Date(purchase.created_at).toLocaleString('ru-RU')}
+                            </small>
+                        </div>
+                    `;
+                    
+                    purchasesList.appendChild(purchaseItem);
+                });
+                
+                if (purchasesList.children.length === 0) {
+                    purchasesList.innerHTML = '<div class="loading">Покупок по заданным критериям не найдено</div>';
+                }
+                
+            } catch (error) {
+                console.error('Ошибка загрузки покупок:', error);
+                const purchasesList = document.getElementById('purchasesList');
+                if (purchasesList) {
+                    purchasesList.innerHTML = '<div class="error-message">Ошибка загрузки покупок: ' + error.message + '</div>';
+                }
             }
         }
-        
-        // 5. Обновляем статистику
-        updateIntegrationStats();
-        
-        showNotification(`✅ Интеграция завершена! Создано ставок: ${createdCount}, Рассчитано: ${calculatedCount}`, 'success');
-        
-        // 6. Перезагружаем данные
-        await loadAllData();
-        updateTournamentDisplay();
-        updateBetsDisplay();
-        
-    } catch (error) {
-        console.error('❌ Ошибка интеграции:', error);
-        showNotification('Ошибка автоматической интеграции', 'error');
-    }
-}
 
-function updateIntegrationStats() {
-    // Считаем автоматически созданные ставки
-    const autoCreatedBets = allBets.filter(bet => 
-        bet.match_id.includes('bet_') && 
-        bet.match_id.includes(currentTournament?.id || '')
-    ).length;
-    
-    // Считаем автоматически рассчитанные ставки
-    const autoCalculatedBets = allBets.filter(bet => 
-        bet.status !== 'active' && 
-        bet.actual_win > 0
-    ).length;
-    
-    // Считаем общее количество жетонов
-    const totalTokens = playerCabinets.reduce((sum, cabinet) => 
-        sum + (cabinet.tokens || 0), 0
-    );
-    
-    document.getElementById('autoBetsCount').textContent = autoCreatedBets;
-    document.getElementById('autoCalculated').textContent = autoCalculatedBets;
-    document.getElementById('totalTokens').textContent = totalTokens;
-}
+        // Вспомогательные функции
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': 'Ожидание',
+                'live': 'LIVE',
+                'finished': 'Завершен'
+            };
+            return statusMap[status] || status;
+        }
 
-// ============================================
-// ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ
-// ============================================
-// Заполняем список игроков
-document.addEventListener('DOMContentLoaded', function() {
-    const playerSelection = document.getElementById('playerSelection');
-    const samplePlayers = [
-        { name: 'Игрок 1', rating: 1000 },
-        { name: 'Игрок 2', rating: 950 },
-        { name: 'Игрок 3', rating: 1100 },
-        { name: 'грок 4', rating: 1050 },
-        { name: 'Игрок 5', rating: 980 }
-    ];
-    
-    playerSelection.innerHTML = '';
-    samplePlayers.forEach(player => {
-        const label = document.createElement('label');
-        label.innerHTML = `
-            <input type="checkbox" value="${player.name}">
-            ${player.name} (${player.rating})
-        `;
-        playerSelection.appendChild(label);
-        playerSelection.appendChild(document.createElement('br'));
-    });
-});
+        function getPurchaseTypeText(type) {
+            const typeMap = {
+                'rating': 'Рейтинг',
+                'skip_penalty': 'Снятие штрафа',
+                'double_tokens': 'Дубликатор жетонов'
+            };
+            return typeMap[type] || type;
+        }
 
-// Инициализация при загрузке страницы
-(async function() {
-    console.log('🎾 Система теннисной лиги с интеграцией ставок');
-    console.log('===============================================');
-    
-    // Запускаем автоматическую интеграцию при загрузке
-    setTimeout(async () => {
-        await loadAllData();
-        updateIntegrationStats();
-    }, 1000);
-})();
-</script>
+        function getPurchaseTypeColor(type) {
+            const colorMap = {
+                'rating': '#f59e0b',
+                'skip_penalty': '#10b981',
+                'double_tokens': '#8b5cf6'
+            };
+            return colorMap[type] || '#6b7280';
+        }
 
-<!-- Подключаем библиотеку Supabase -->
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+        // Функции администратора
+        function closeAdminPanel() {
+            const panel = document.querySelector('.admin-panel');
+            if (panel) panel.remove();
+        }
+
+        async function createMatch() {
+            const player1Name = document.getElementById('matchPlayer1').value;
+            const player2Name = document.getElementById('matchPlayer2').value;
+            const date = document.getElementById('matchDate').value;
+            
+            if (!player1Name || !player2Name || player1Name === player2Name) {
+                showNotification('Выберите разных игроков', 'error');
+                return;
+            }
+            
+            if (!date) {
+                showNotification('Выберите дату матча', 'error');
+                return;
+            }
+            
+            try {
+                const player1 = allPlayers.find(p => p.name === player1Name);
+                const player2 = allPlayers.find(p => p.name === player2Name);
+                
+                const player1Rating = player1 ? parseInt(player1.rating) : 1000;
+                const player2Rating = player2 ? parseInt(player2.rating) : 1000;
+                
+                const odds = calculateOdds(player1Rating, player2Rating);
+                const matchId = 'match_' + Date.now().toString(36);
+                
+                const { error } = await db
+                    .from('bet_matches')
+                    .insert([{
+                        id: matchId,
+                        player1: player1Name,
+                        player2: player2Name,
+                        player1_rating: player1Rating,
+                        player2_rating: player2Rating,
+                        date: date,
+                        status: 'pending',
+                        odds: odds,
+                        created_at: new Date().toISOString()
+                    }]);
+                
+                if (error) throw error;
+                
+                showNotification('Матч создан!', 'success');
+                await loadMatchesData();
+                closeAdminPanel();
+                showAdminPanel();
+                
+            } catch (error) {
+                console.error('Ошибка создания матча:', error);
+                showNotification('Ошибка создания матча: ' + error.message, 'error');
+            }
+        }
+
+        async function createCabinet(playerName) {
+            if (!confirm(`Создать кабинет для игрока ${playerName}?`)) return;
+            
+            try {
+                const login = playerName.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now().toString(36);
+                const password = Math.random().toString(36).slice(-8);
+                
+                const { error } = await db
+                    .from('player_cabinets')
+                    .insert([{
+                        player_name: playerName,
+                        login: login,
+                        password: password,
+                        tokens: 100,
+                        join_date: new Date().toISOString()
+                    }]);
+                
+                if (error) throw error;
+                
+                await loadPlayersData();
+                showNotification(`Кабинет создан! Логин: ${login}, Пароль: ${password}`, 'success');
+                closeAdminPanel();
+                showAdminPanel();
+                
+            } catch (error) {
+                console.error('Ошибка создания кабинета:', error);
+                showNotification('Ошибка создания кабинета: ' + error.message, 'error');
+            }
+        }
+
+        async function addTokensToPlayer() {
+            const cabinetId = document.getElementById('playerForTokens').value;
+            const amount = parseInt(document.getElementById('tokensAmount').value) || 100;
+            
+            if (!cabinetId) {
+                showNotification('Выберите игрока', 'error');
+                return;
+            }
+            
+            if (amount <= 0) {
+                showNotification('Введите положительное количество жетонов', 'error');
+                return;
+            }
+            
+            try {
+                const cabinet = playerCabinets.find(pc => pc.id === cabinetId);
+                if (!cabinet) {
+                    showNotification('Кабинет не найден', 'error');
+                    return;
+                }
+                
+                const newTokens = (cabinet.tokens || 0) + amount;
+                
+                const { error } = await db
+                    .from('player_cabinets')
+                    .update({ tokens: newTokens })
+                    .eq('id', cabinetId);
+                
+                if (error) throw error;
+                
+                await loadPlayersData();
+                showNotification(`Добавлено ${amount} жетонов игроку ${cabinet.player_name}`, 'success');
+                closeAdminPanel();
+                showAdminPanel();
+                
+            } catch (error) {
+                console.error('Ошибка добавления жетонов:', error);
+                showNotification('Ошибка добавления жетонов: ' + error.message, 'error');
+            }
+        }
+
+        async function updateMatchStatus(matchId, status) {
+            try {
+                const { error } = await db
+                    .from('bet_matches')
+                    .update({ status: status })
+                    .eq('id', matchId);
+                
+                if (error) throw error;
+                
+                showNotification(`Статус матча обновлен на ${status === 'live' ? 'LIVE' : 'Ожидание'}`, 'success');
+                await loadMatchesData();
+                closeAdminPanel();
+                showAdminPanel();
+                
+            } catch (error) {
+                console.error('Ошибка обновления статуса:', error);
+                showNotification('Ошибка обновления статуса: ' + error.message, 'error');
+            }
+        }
+
+        // Завершение матча с обновлением ставок
+        async function finalizeMatch(matchId, winner) {
+            if (!confirm(`Подтвердить победу ${winner === 'player1' ? 'первого' : 'второго'} игрока? Все ставки на этот матч будут автоматически обработаны.`)) return;
+            
+            try {
+                const match = allMatches.find(m => m.id === matchId);
+                if (!match) {
+                    showNotification('Матч не найден', 'error');
+                    return;
+                }
+                
+                // 1. Обновляем статус матча
+                const { error: matchError } = await db
+                    .from('bet_matches')
+                    .update({ 
+                        status: 'finished',
+                        result: winner,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', matchId);
+                
+                if (matchError) throw matchError;
+                
+                // 2. Получаем все активные ставки на этот матч
+                let bets = [];
+                try {
+                    const { data: betsData, error: betsError } = await db
+                        .from('player_bets')
+                        .select('*')
+                        .eq('match_id', matchId)
+                        .eq('status', 'active');
+                    
+                    if (betsError && !betsError.message.includes("Could not find the table")) {
+                        throw betsError;
+                    }
+                    
+                    bets = betsData || [];
+                } catch (error) {
+                    // Таблица ставок может не существовать, это нормально
+                    console.log('Ставки не найдены или таблица не создана:', error.message);
+                }
+                
+                // 3. Обновляем ставки и начисляем выигрыши
+                if (bets && bets.length > 0) {
+                    let wonBetsCount = 0;
+                    let totalWonAmount = 0;
+                    
+                    for (const bet of bets) {
+                        let newStatus = '';
+                        let actualWin = 0;
+                        
+                        if (bet.bet_on === winner) {
+                            // Ставка выиграла
+                            newStatus = 'won';
+                            actualWin = Math.round(bet.amount * bet.odds);
+                            wonBetsCount++;
+                            totalWonAmount += actualWin;
+                            
+                            // Начисляем выигрыш игроку
+                            const { data: cabinet } = await db
+                                .from('player_cabinets')
+                                .select('*')
+                                .eq('player_name', bet.player_name)
+                                .single();
+                            
+                            if (cabinet) {
+                                const newTokens = (cabinet.tokens || 0) + actualWin;
+                                await db
+                                    .from('player_cabinets')
+                                    .update({ tokens: newTokens })
+                                    .eq('player_name', bet.player_name);
+                                
+                                console.log(`Начислено ${actualWin} жетонов игроку ${bet.player_name}`);
+                            }
+                        } else {
+                            // Ставка проиграла
+                            newStatus = 'lost';
+                            actualWin = 0;
+                        }
+                        
+                        // Обновляем статус ставки
+                        await db
+                            .from('player_bets')
+                            .update({ 
+                                status: newStatus,
+                                actual_win: actualWin,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', bet.id);
+                    }
+                    
+                    showNotification(`Матч завершен! Обработано ${bets.length} ставок. Выиграло ${wonBetsCount} ставок на общую сумму ${totalWonAmount} жетонов`, 'success');
+                } else {
+                    showNotification('Матч завершен! (ставок на этот матч не найдено)', 'success');
+                }
+                
+                // 4. Обновляем данные и перезагружаем панель
+                await loadMatchesData();
+                await loadPlayersData();
+                closeAdminPanel();
+                showAdminPanel();
+                
+                // 5. Перезагружаем список ставок в админке
+                const betsList = document.getElementById('betsList');
+                if (betsList) {
+                    setTimeout(() => loadAllBets(), 500);
+                }
+                
+            } catch (error) {
+                console.error('Ошибка завершения матча:', error);
+                showNotification('Ошибка завершения матча: ' + error.message, 'error');
+            }
+        }
+
+        // Загрузка всех ставок
+        async function loadAllBets() {
+            try {
+                const betsList = document.getElementById('betsList');
+                if (!betsList) return;
+                
+                betsList.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка ставок...</div>';
+                
+                try {
+                    const { data: bets, error } = await db
+                        .from('player_bets')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+                    
+                    if (error) {
+                        // Если таблица не существует, показываем сообщение
+                        if (error.message.includes("Could not find the table") || error.code === 'PGRST205') {
+                            betsList.innerHTML = `
+                                <div style="padding: 1rem; text-align: center;">
+                                    <div style="color: var(--warning); margin-bottom: 0.5rem;">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div style="margin-bottom: 1rem;">
+                                        Таблица ставок не создана. 
+                                        <br>
+                                        <small>При завершении матча ставки будут создаваться автоматически</small>
+                                    </div>
+                                </div>
+                            `;
+                            return;
+                        }
+                        throw error;
+                    }
+                    
+                    if (!bets || bets.length === 0) {
+                        betsList.innerHTML = '<div class="loading">Ставок не найдено</div>';
+                        return;
+                    }
+                    
+                    // Получаем информацию о матчах
+                    const matchIds = [...new Set(bets.map(bet => bet.match_id))];
+                    const { data: matches } = await db
+                        .from('bet_matches')
+                        .select('*')
+                        .in('id', matchIds);
+                    
+                    // Получаем информацию о игроках
+                    const playerNames = [...new Set(bets.map(bet => bet.player_name))];
+                    const { data: cabinets } = await db
+                        .from('player_cabinets')
+                        .select('*')
+                        .in('player_name', playerNames);
+                    
+                    const searchTerm = document.getElementById('searchBets').value.toLowerCase();
+                    const statusFilter = document.getElementById('filterBetStatus').value;
+                    
+                    betsList.innerHTML = '';
+                    
+                    bets.forEach(bet => {
+                        const match = matches ? matches.find(m => m.id === bet.match_id) : null;
+                        const cabinet = cabinets ? cabinets.find(c => c.player_name === bet.player_name) : null;
+                        
+                        if (!match) return;
+                        
+                        // Фильтрация
+                        if (searchTerm && !bet.player_name.toLowerCase().includes(searchTerm)) return;
+                        
+                        if (statusFilter !== 'all') {
+                            if (statusFilter === 'active' && bet.status !== 'active') return;
+                            if (statusFilter === 'won' && bet.status !== 'won') return;
+                            if (statusFilter === 'lost' && bet.status !== 'lost') return;
+                            if (statusFilter === 'cancelled' && bet.status !== 'cancelled') return;
+                        }
+                        
+                        const betItem = document.createElement('div');
+                        betItem.className = 'player-item';
+                        
+                        const betAmount = parseFloat(bet.amount) || 0;
+                        const potentialWin = parseFloat(bet.potential_win) || 0;
+                        const actualWin = parseFloat(bet.actual_win) || 0;
+                        
+                        let statusBadge = '';
+                        let statusColor = '';
+                        
+                        switch(bet.status) {
+                            case 'active':
+                                statusBadge = '🟡 Активна';
+                                statusColor = '#f59e0b';
+                                break;
+                            case 'won':
+                                statusBadge = '🟢 Выиграна';
+                                statusColor = '#10b981';
+                                break;
+                            case 'lost':
+                                statusBadge = '🔴 Проиграна';
+                                statusColor = '#ef4444';
+                                break;
+                            case 'cancelled':
+                                statusBadge = '⚪ Отменена';
+                                statusColor = '#6b7280';
+                                break;
+                            default:
+                                statusBadge = '🟠 В ожидании';
+                                statusColor = '#f97316';
+                        }
+                        
+                        const matchInfo = match ? 
+                            `${match.player1} vs ${match.player2} (${new Date(match.date).toLocaleDateString('ru-RU')})` : 
+                            'Матч не найден';
+                        
+                        const betOnName = bet.bet_on === 'player1' ? match.player1 : match.player2;
+                        
+                        betItem.innerHTML = `
+                            <div class="player-info">
+                                <strong>${bet.player_name}</strong>
+                                ${cabinet ? `<br><small>Токены: ${cabinet.tokens || 0}</small>` : ''}
+                                <br>
+                                <small>
+                                    Матч: ${matchInfo}<br>
+                                    Ставка на: <strong>${betOnName}</strong><br>
+                                    Сумма: <strong>${betAmount}</strong> жетонов
+                                    ${bet.odds ? ` (коэф. ${parseFloat(bet.odds).toFixed(2)})` : ''}
+                                </small>
+                                <br>
+                                <small>
+                                    ${bet.status === 'active' ? 
+                                        `Потенциальный выигрыш: <strong style="color: var(--success);">${potentialWin.toFixed(2)}</strong>` :
+                                        bet.status === 'won' ?
+                                        `Выиграно: <strong style="color: var(--success);">${actualWin.toFixed(2)}</strong>` :
+                                        ''
+                                    }
+                                    <span style="margin-left: 10px; padding: 2px 6px; border-radius: 10px; background: ${statusColor}20; color: ${statusColor}; font-size: 0.7rem;">
+                                        ${statusBadge}
+                                    </span>
+                                </small>
+                                <br>
+                                <small style="color: var(--gray); font-size: 0.7rem;">
+                                    ${new Date(bet.created_at).toLocaleString('ru-RU')}
+                                </small>
+                            </div>
+                            <div class="player-actions">
+                                ${bet.status === 'active' ? `
+                                    <button class="action-btn delete small" onclick="cancelBet('${bet.id}', '${bet.player_name}', ${betAmount})" title="Отменить ставку">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                ` : bet.status === 'cancelled' ? `
+                                    <button class="action-btn add-tokens small" onclick="restoreBet('${bet.id}', '${bet.player_name}', ${betAmount})" title="Восстановить ставку">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                ` : ''}
+                                <button class="action-btn delete small" onclick="deleteBetPermanently('${bet.id}', '${bet.player_name}')" title="Удалить навсегда">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                        
+                        betsList.appendChild(betItem);
+                    });
+                    
+                    if (betsList.children.length === 0) {
+                        betsList.innerHTML = '<div class="loading">Ставок по заданным критериям не найдено</div>';
+                    }
+                    
+                } catch (error) {
+                    console.error('Ошибка загрузки ставок:', error);
+                    betsList.innerHTML = `
+                        <div style="padding: 1rem; text-align: center; color: var(--danger);">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <div>Ошибка загрузки ставок</div>
+                            <small>${error.message}</small>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Ошибка загрузки ставок:', error);
+                const betsList = document.getElementById('betsList');
+                if (betsList) {
+                    betsList.innerHTML = '<div class="error-message">Ошибка загрузки ставок: ' + error.message + '</div>';
+                }
+            }
+        }
+
+        // Отмена ставки
+        async function cancelBet(betId, playerName, betAmount) {
+            if (!confirm(`Отменить ставку игрока ${playerName} на сумму ${betAmount} жетонов? Жетоны будут возвращены игроку.`)) {
+                return;
+            }
+            
+            try {
+                // Возвращаем жетоны игроку
+                const { data: cabinet } = await db
+                    .from('player_cabinets')
+                    .select('*')
+                    .eq('player_name', playerName)
+                    .single();
+                
+                if (cabinet) {
+                    const newTokens = (cabinet.tokens || 0) + betAmount;
+                    
+                    await db
+                        .from('player_cabinets')
+                        .update({ tokens: newTokens })
+                        .eq('player_name', playerName);
+                }
+                
+                // Обновляем статус ставки
+                await db
+                    .from('player_bets')
+                    .update({ 
+                        status: 'cancelled',
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', betId);
+                
+                showNotification(`Ставка отменена. ${betAmount} жетонов возвращены игроку ${playerName}`, 'success');
+                
+                // Перезагружаем список ставок
+                await loadAllBets();
+                
+                // Обновляем данные игроков
+                await loadPlayersData();
+                
+            } catch (error) {
+                console.error('Ошибка отмены ставки:', error);
+                showNotification('Ошибка отмены ставки: ' + error.message, 'error');
+            }
+        }
+
+        // Восстановление ставки
+        async function restoreBet(betId, playerName, betAmount) {
+            if (!confirm(`Восстановить ставку игрока ${playerName} на сумму ${betAmount} жетонов? Жетоны будут списаны с баланса игрока.`)) {
+                return;
+            }
+            
+            try {
+                // Проверяем баланс игрока
+                const { data: cabinet } = await db
+                    .from('player_cabinets')
+                    .select('*')
+                    .eq('player_name', playerName)
+                    .single();
+                
+                if (!cabinet) {
+                    showNotification('Кабинет игрока не найден', 'error');
+                    return;
+                }
+                
+                if ((cabinet.tokens || 0) < betAmount) {
+                    showNotification(`У игрока недостаточно жетонов. Требуется: ${betAmount}, доступно: ${cabinet.tokens || 0}`, 'error');
+                    return;
+                }
+                
+                // Списываем жетоны
+                const newTokens = (cabinet.tokens || 0) - betAmount;
+                
+                await db
+                    .from('player_cabinets')
+                    .update({ tokens: newTokens })
+                    .eq('player_name', playerName);
+                
+                // Обновляем статус ставки
+                await db
+                    .from('player_bets')
+                    .update({ 
+                        status: 'active',
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', betId);
+                
+                showNotification(`Ставка восстановлена. ${betAmount} жетонов списаны с баланса игрока ${playerName}`, 'success');
+                
+                // Перезагружаем список ставок
+                await loadAllBets();
+                
+                // Обновляем данные игроков
+                await loadPlayersData();
+                
+            } catch (error) {
+                console.error('Ошибка восстановления ставки:', error);
+                showNotification('Ошибка восстановления ставки: ' + error.message, 'error');
+            }
+        }
+
+        // Удаление ставки навсегда
+        async function deleteBetPermanently(betId, playerName) {
+            if (!confirm(`Удалить ставку игрока ${playerName} навсегда? Это действие нельзя отменить.`)) {
+                return;
+            }
+            
+            try {
+                const { error } = await db
+                    .from('player_bets')
+                    .delete()
+                    .eq('id', betId);
+                
+                if (error) throw error;
+                
+                showNotification('Ставка удалена навсегда', 'success');
+                
+                // Перезагружаем список ставок
+                await loadAllBets();
+                
+            } catch (error) {
+                console.error('Ошибка удаления ставки:', error);
+                showNotification('Ошибка удаления ставки: ' + error.message, 'error');
+            }
+        }
+
+        // Функции модальных окон
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Обновление навигации
+        function updateNavForUser() {
+            const loginText = document.getElementById('loginText');
+            const mobileLoginText = document.getElementById('mobileLoginText');
+            
+            if (currentUser) {
+                if (loginText) loginText.textContent = currentUser.player_name || 'Игрок';
+                if (mobileLoginText) mobileLoginText.textContent = currentUser.player_name || 'Игрок';
+            } else {
+                if (loginText) loginText.textContent = 'Войти';
+                if (mobileLoginText) mobileLoginText.textContent = 'Войти';
+            }
+        }
+
+        // Показать информацию об игроке
+        function showPlayerInfo() {
+            if (!currentUser) return;
+            
+            const player = allPlayers.find(p => p.name === currentUser.player_name);
+            const userPurchases = playerPurchases.filter(p => p.player_name === currentUser.player_name);
+            const matches = player ? parseInt(player.matches) || 0 : 0;
+            const wins = player ? parseInt(player.wins) || 0 : 0;
+            const winRate = matches > 0 ? Math.round((wins / matches) * 100) : 0;
+            
+            document.getElementById('playerInfo').innerHTML = `
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    ${player && player.avatar ? 
+                        `<img src="${player.avatar}" alt="${currentUser.player_name}" style="width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 1rem; object-fit: cover; border: 3px solid var(--primary);">` : 
+                        `<div style="width: 100px; height: 100px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; font-weight: bold;">
+                            ${currentUser.player_name ? currentUser.player_name.charAt(0).toUpperCase() : '?'}
+                        </div>`
+                    }
+                    <h3 style="margin-bottom: 0.5rem;">${currentUser.player_name || 'Без имени'}</h3>
+                    <p style="color: var(--gray); margin-bottom: 1rem;">Логин: ${currentUser.login}</p>
+                </div>
+                
+                <div style="background: #f8fafc; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 0.25rem;">Рейтинг</div>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">${player ? player.rating : 'Н/Д'}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 0.25rem;">Жетоны</div>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: var(--warning);">
+                                <i class="fas fa-coins"></i> ${currentUser.tokens || 0}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.9rem; color: var(--gray);">Матчи</div>
+                            <div style="font-size: 1.2rem; font-weight: bold;">${matches}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.9rem; color: var(--gray);">Победы</div>
+                            <div style="font-size: 1.2rem; font-weight: bold;">${wins}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.9rem; color: var(--gray);">Процент</div>
+                            <div style="font-size: 1.2rem; font-weight: bold;">${winRate}%</div>
+                        </div>
+                    </div>
+                    
+                    ${userPurchases.length > 0 ? `
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                            <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 0.5rem;">Ваши покупки (${userPurchases.length}):</div>
+                            <div style="max-height: 150px; overflow-y: auto; font-size: 0.85rem;">
+                                ${userPurchases.slice(0, 5).map(purchase => `
+                                    <div style="display: flex; justify-content: space-between; padding: 0.25rem 0; border-bottom: 1px solid #f0f0f0;">
+                                        <span>${purchase.item_name}</span>
+                                        <span style="color: var(--warning);">-${purchase.price} жетонов</span>
+                                    </div>
+                                `).join('')}
+                                ${userPurchases.length > 5 ? `
+                                    <div style="text-align: center; padding: 0.5rem; color: var(--gray); font-size: 0.8rem;">
+                                        ... и еще ${userPurchases.length - 5} покупок
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <div style="display: flex; gap: 1rem;">
+                    <button onclick="logout()" class="bet-btn danger" style="flex: 1;">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                    <a href="#shop" onclick="closeModal('playerModal')" class="bet-btn success" style="flex: 1; text-align: center; text-decoration: none;">
+                        <i class="fas fa-store"></i> Магазин
+                    </a>
+                </div>
+            `;
+            
+            openModal('playerModal');
+        }
+
+        // Выход из системы
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            showNotification('Вы вышли из системы', 'info');
+            closeModal('playerModal');
+            updateNavForUser();
+            loadLiveMatches();
+            loadShop();
+        }
+
+        // Размещение ставки
+        async function placeBet(matchId) {
+            if (!currentUser) {
+                showNotification('Войдите, чтобы сделать ставку', 'error');
+                return;
+            }
+            
+            const match = allMatches.find(m => m.id === matchId);
+            if (!match || match.status !== 'live') {
+                showNotification('Матч не активен для ставок', 'error');
+                return;
+            }
+            
+            if (!selectedBets[matchId]) {
+                showNotification('Сначала выберите игрока для ставки', 'error');
+                return;
+            }
+            
+            const input = document.getElementById(`bet-amount-${matchId}`);
+            if (!input) return;
+            
+            const amount = parseInt(input.value);
+            const maxBet = Math.floor((currentUser.tokens || 0) * 0.5);
+            
+            if (!amount || amount < 1) {
+                showNotification('Введите сумму ставки', 'error');
+                return;
+            }
+            
+            if (amount > maxBet) {
+                showNotification(`Максимальная ставка: ${maxBet} жетонов`, 'error');
+                return;
+            }
+            
+            if (amount > (currentUser.tokens || 0)) {
+                showNotification('Недостаточно жетонов', 'error');
+                return;
+            }
+            
+            try {
+                const betData = selectedBets[matchId];
+                const odds = betData.odds;
+                const potentialWin = Math.round(amount * odds * 100) / 100;
+                
+                // Создаем запись о ставке
+                const betId = 'bet_' + Date.now().toString(36);
+                
+                const { error: betError } = await db
+                    .from('player_bets')
+                    .insert([{
+                        id: betId,
+                        match_id: matchId,
+                        player_name: currentUser.player_name,
+                        bet_on: betData.betOn,
+                        amount: amount,
+                        odds: odds,
+                        potential_win: potentialWin,
+                        status: 'active',
+                        created_at: new Date().toISOString()
+                    }]);
+                
+                if (betError) {
+                    // Если таблица не существует, создаем ставку без сохранения в базу
+                    if (betError.message.includes("Could not find the table")) {
+                        showNotification(`Ставка ${amount} жетонов на ${betData.playerName} принята! (таблица ставок не создана)`, 'success');
+                    } else {
+                        throw betError;
+                    }
+                } else {
+                    showNotification(`Ставка ${amount} жетонов на ${betData.playerName} принята! Потенциальный выигрыш: ${potentialWin.toFixed(2)}`, 'success');
+                }
+                
+                // Обновляем баланс игрока
+                const newTokens = (currentUser.tokens || 0) - amount;
+                
+                const { error: updateError } = await db
+                    .from('player_cabinets')
+                    .update({ tokens: newTokens })
+                    .eq('id', currentUser.id);
+                
+                if (updateError) throw updateError;
+                
+                // Обновляем текущего пользователя
+                currentUser.tokens = newTokens;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Очищаем поле ввода
+                input.value = '';
+                
+                // Сбрасываем выбор
+                delete selectedBets[matchId];
+                
+                // Обновляем информацию о выборе
+                const betInfo = document.getElementById(`bet-info-${matchId}`);
+                if (betInfo) {
+                    betInfo.textContent = 'Выберите игрока';
+                }
+                
+                // Снимаем выделение с кнопок
+                const matchCard = input.closest('.match-card');
+                if (matchCard) {
+                    const oddsBtns = matchCard.querySelectorAll('.odds-btn');
+                    oddsBtns.forEach(btn => btn.classList.remove('selected'));
+                }
+                
+                // Обновляем статистику
+                await updateStats();
+                
+                // Обновляем данные игроков
+                await loadPlayersData();
+                
+                // Обновляем магазин для отображения измененного баланса
+                loadShop();
+                
+            } catch (error) {
+                console.error('Ошибка размещения ставки:', error);
+                showNotification('Ошибка размещения ставки: ' + error.message, 'error');
+            }
+        }
+
+        // Уведомления
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Уведомление с HTML
+        function showNotificationWithHtml(html, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = html;
+            
+            // Добавляем кнопку закрытия
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '&times;';
+            closeBtn.style.cssText = 'position: absolute; top: 5px; right: 10px; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;';
+            closeBtn.onclick = function() {
+                notification.remove();
+            };
+            
+            notification.style.position = 'relative';
+            notification.appendChild(closeBtn);
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 10000);
+        }
+    </script>
+
+    <!-- Подключаем библиотеку Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </body>
 </html>
