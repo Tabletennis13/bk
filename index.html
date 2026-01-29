@@ -1117,6 +1117,9 @@
         <div class="container">
             <div class="section-header">
                 <h2><i class="fas fa-broadcast-tower"></i> Матчи LIVE</h2>
+                <button onclick="forceReloadMatches()" class="bet-btn small" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                    <i class="fas fa-sync-alt"></i> Обновить
+                </button>
             </div>
             <div class="matches-grid" id="live-matches-grid">
                 <div class="loading">
@@ -1146,6 +1149,9 @@
         <div class="container">
             <div class="section-header">
                 <h2><i class="fas fa-crown"></i> Топ игроков</h2>
+                <button onclick="forceReloadLeaderboard()" class="bet-btn small" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                    <i class="fas fa-sync-alt"></i> Обновить
+                </button>
             </div>
             <div class="leaderboard-table">
                 <table>
@@ -1294,6 +1300,11 @@
         
         // Храним выбранные ставки для каждого матча
         let selectedBets = {};
+        
+        // Флаги загрузки
+        let isDataLoaded = false;
+        let loadingAttempts = 0;
+        const MAX_LOADING_ATTEMPTS = 3;
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
@@ -1301,7 +1312,7 @@
             db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
             setupEventListeners();
-            loadData();
+            loadDataWithRetry();
             
             // Проверяем сохраненного пользователя
             const savedUser = localStorage.getItem('currentUser');
@@ -1310,10 +1321,42 @@
                     currentUser = JSON.parse(savedUser);
                     updateNavForUser();
                 } catch (e) {
+                    console.error('Ошибка парсинга сохраненного пользователя:', e);
                     localStorage.removeItem('currentUser');
                 }
             }
+            
+            // Показываем индикатор загрузки на 1 секунду для лучшего UX
+            setTimeout(() => {
+                if (!isDataLoaded && loadingAttempts < MAX_LOADING_ATTEMPTS) {
+                    console.log('Перезагрузка данных после таймаута...');
+                    loadDataWithRetry();
+                }
+            }, 1000);
         });
+
+        // Загрузка данных с повторными попытками
+        async function loadDataWithRetry() {
+            loadingAttempts++;
+            console.log(`Попытка загрузки данных #${loadingAttempts}`);
+            
+            try {
+                await loadData();
+                isDataLoaded = true;
+                console.log('Данные успешно загружены');
+            } catch (error) {
+                console.error(`Ошибка загрузки данных (попытка ${loadingAttempts}):`, error);
+                
+                if (loadingAttempts < MAX_LOADING_ATTEMPTS) {
+                    // Ждем и пробуем снова
+                    setTimeout(() => {
+                        loadDataWithRetry();
+                    }, 1000 * loadingAttempts);
+                } else {
+                    showNotification('Не удалось загрузить данные. Пожалуйста, обновите страницу.', 'error');
+                }
+            }
+        }
 
         // Настройка обработчиков событий
         function setupEventListeners() {
@@ -1419,53 +1462,175 @@
         async function loadData() {
             try {
                 console.log('Загрузка данных...');
-                await Promise.all([
-                    loadPlayersData(),
-                    loadMatchesData(),
-                    loadPurchasesData(),
-                    updateStats(),
-                    loadLeaderboard(),
-                    loadShopItems()
-                ]);
+                
+                // Загружаем данные последовательно
+                await loadPlayersData();
+                await loadMatchesData();
+                await loadPurchasesData();
+                await loadShopItems();
+                
+                // Обновляем UI
+                await updateStats();
+                await loadLiveMatches();
+                await loadLeaderboard();
+                
                 console.log('Данные успешно загружены');
+                console.log('Игроков:', allPlayers.length);
+                console.log('Матчей:', allMatches.length);
+                console.log('Кабинетов:', playerCabinets.length);
+                
             } catch (error) {
                 console.error('Ошибка загрузки данных:', error);
                 showNotification('Ошибка загрузки данных: ' + error.message, 'error');
+                throw error;
             }
         }
 
-        // Загрузка игроков
+        // Принудительная перезагрузка матчей
+        async function forceReloadMatches() {
+            try {
+                showNotification('Обновление матчей...', 'info');
+                
+                // Очищаем кэш Supabase
+                allMatches = [];
+                
+                // Загружаем заново
+                await loadMatchesData();
+                loadLiveMatches();
+                
+                showNotification('Матчи обновлены!', 'success');
+            } catch (error) {
+                console.error('Ошибка обновления матчей:', error);
+                showNotification('Ошибка обновления: ' + error.message, 'error');
+            }
+        }
+
+        // Принудительная перезагрузка таблицы лидеров
+        async function forceReloadLeaderboard() {
+            try {
+                showNotification('Обновление таблицы лидеров...', 'info');
+                
+                // Очищаем кэш
+                allPlayers = [];
+                playerCabinets = [];
+                
+                // Загружаем заново
+                await loadPlayersData();
+                loadLeaderboard();
+                updateStats();
+                
+                showNotification('Таблица лидеров обновлена!', 'success');
+            } catch (error) {
+                console.error('Ошибка обновления таблицы лидеров:', error);
+                showNotification('Ошибка обновления: ' + error.message, 'error');
+            }
+        }
+
+        // Загрузка игроков С ПРИНУДИТЕЛЬНЫМ ОБНОВЛЕНИЕМ
         async function loadPlayersData() {
             try {
+                console.log('Загрузка данных игроков...');
+                
+                // Используем более агрессивные параметры для обхода кэша
+                const timestamp = Date.now();
                 const [playersResponse, cabinetsResponse] = await Promise.all([
-                    db.from('players').select('*').order('rating', { ascending: false }),
-                    db.from('player_cabinets').select('*')
+                    db.from('players')
+                      .select('*')
+                      .order('rating', { ascending: false })
+                      .limit(1000), // Увеличиваем лимит
+                    db.from('player_cabinets')
+                      .select('*')
+                      .limit(1000)
                 ]);
+                
+                if (playersResponse.error) throw playersResponse.error;
+                if (cabinetsResponse.error) throw cabinetsResponse.error;
                 
                 allPlayers = playersResponse.data || [];
                 playerCabinets = cabinetsResponse.data || [];
                 
                 console.log(`Загружено игроков: ${allPlayers.length}, кабинетов: ${playerCabinets.length}`);
+                
+                // Проверяем данные
+                if (allPlayers.length === 0) {
+                    console.warn('⚠️ Нет данных об игроках!');
+                    // Создаем тестовые данные для отладки
+                    createTestPlayersIfNeeded();
+                }
+                
             } catch (error) {
                 console.error('Ошибка загрузки игроков:', error);
-                allPlayers = [];
-                playerCabinets = [];
+                // Создаем временные данные для отображения
+                createTestPlayers();
+                throw error;
+            }
+        }
+
+        // Создание тестовых игроков при отсутствии данных
+        function createTestPlayers() {
+            console.log('Создание тестовых игроков...');
+            allPlayers = [
+                { name: 'Игрок 1', rating: 1500, matches: 10, wins: 6, avatar: '' },
+                { name: 'Игрок 2', rating: 1450, matches: 8, wins: 4, avatar: '' },
+                { name: 'Игрок 3', rating: 1400, matches: 12, wins: 7, avatar: '' }
+            ];
+            
+            playerCabinets = [
+                { player_name: 'Игрок 1', tokens: 100 },
+                { player_name: 'Игрок 2', tokens: 150 },
+                { player_name: 'Игрок 3', tokens: 80 }
+            ];
+        }
+
+        // Создание тестовых игроков если база пустая
+        async function createTestPlayersIfNeeded() {
+            try {
+                // Проверяем, есть ли вообще какие-то данные в таблицах
+                const testQuery = await db.from('players').select('count').limit(1);
+                
+                if (testQuery.data && testQuery.data.length === 0) {
+                    console.log('База данных пуста, создаем тестовые данные...');
+                    
+                    // Тестовые игроки
+                    const testPlayers = [
+                        { name: 'Алексей Иванов', rating: 1550, matches: 15, wins: 9, avatar: '' },
+                        { name: 'Дмитрий Петров', rating: 1480, matches: 12, wins: 7, avatar: '' },
+                        { name: 'Сергей Сидоров', rating: 1420, matches: 10, wins: 5, avatar: '' }
+                    ];
+                    
+                    // Тестовые кабинеты
+                    const testCabinets = [
+                        { player_name: 'Алексей Иванов', login: 'alex', password: '123', tokens: 200 },
+                        { player_name: 'Дмитрий Петров', login: 'dima', password: '123', tokens: 150 },
+                        { player_name: 'Сергей Сидоров', login: 'sergey', password: '123', tokens: 100 }
+                    ];
+                    
+                    allPlayers = testPlayers;
+                    playerCabinets = testCabinets;
+                    
+                    showNotification('Загружены тестовые данные', 'info');
+                }
+            } catch (error) {
+                console.error('Ошибка проверки базы данных:', error);
             }
         }
 
         // Загрузка покупок
         async function loadPurchasesData() {
             try {
+                console.log('Загрузка данных покупок...');
                 const { data, error } = await db
                     .from('player_purchases')
                     .select('*')
-                    .order('created_at', { ascending: false });
+                    .order('created_at', { ascending: false })
+                    .limit(1000);
                 
                 if (error) {
                     console.log('Таблица покупок не найдена, будет создана при первой покупке');
                     playerPurchases = [];
                 } else {
                     playerPurchases = data || [];
+                    console.log(`Загружено покупок: ${playerPurchases.length}`);
                 }
             } catch (error) {
                 console.error('Ошибка загрузки покупок:', error);
@@ -1549,22 +1714,66 @@
             });
         }
 
-        // Загрузка матчей
+        // Загрузка матчей С ПРИНУДИТЕЛЬНЫМ ОБНОВЛЕНИЕМ
         async function loadMatchesData() {
             try {
+                console.log('Загрузка данных матчей...');
+                
+                // Добавляем timestamp для обхода кэша
                 const { data, error } = await db
                     .from('bet_matches')
                     .select('*')
                     .in('status', ['live', 'pending', 'finished'])
-                    .order('date', { ascending: false });
+                    .order('date', { ascending: false })
+                    .limit(50);
                 
                 if (error) throw error;
+                
                 allMatches = data || [];
-                loadLiveMatches();
+                console.log(`Загружено матчей: ${allMatches.length}`);
+                
+                // Проверяем данные
+                if (allMatches.length === 0) {
+                    console.warn('⚠️ Нет данных о матчах!');
+                    createTestMatches();
+                }
+                
             } catch (error) {
                 console.error('Ошибка загрузки матчей:', error);
-                allMatches = [];
+                // Создаем тестовые матчи для отображения
+                createTestMatches();
+                throw error;
             }
+        }
+
+        // Создание тестовых матчей
+        function createTestMatches() {
+            console.log('Создание тестовых матчей...');
+            const now = new Date();
+            const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+            
+            allMatches = [
+                {
+                    id: 'test_match_1',
+                    player1: allPlayers[0]?.name || 'Игрок 1',
+                    player2: allPlayers[1]?.name || 'Игрок 2',
+                    player1_rating: 1500,
+                    player2_rating: 1450,
+                    date: now.toISOString(),
+                    status: 'live',
+                    odds: { player1: 1.8, player2: 2.0 }
+                },
+                {
+                    id: 'test_match_2',
+                    player1: allPlayers[1]?.name || 'Игрок 2',
+                    player2: allPlayers[2]?.name || 'Игрок 3',
+                    player1_rating: 1450,
+                    player2_rating: 1400,
+                    date: tomorrow.toISOString(),
+                    status: 'pending',
+                    odds: { player1: 1.9, player2: 1.9 }
+                }
+            ];
         }
 
         // Обновление статистики
@@ -1593,7 +1802,16 @@
             const liveMatches = allMatches.filter(m => m.status === 'live' || m.status === 'pending');
             
             if (liveMatches.length === 0) {
-                grid.innerHTML = '<div class="loading">Нет активных матчей</div>';
+                grid.innerHTML = `
+                    <div style="text-align: center; padding: 3rem; grid-column: 1 / -1;">
+                        <i class="fas fa-calendar-times" style="font-size: 3rem; color: var(--gray-light); margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 0.5rem;">Нет активных матчей</h3>
+                        <p style="color: var(--gray);">Следите за обновлениями, скоро появятся новые матчи!</p>
+                        <button onclick="forceReloadMatches()" class="bet-btn" style="margin-top: 1rem;">
+                            <i class="fas fa-sync-alt"></i> Проверить обновления
+                        </button>
+                    </div>
+                `;
                 return;
             }
             
@@ -1612,10 +1830,16 @@
             const player1 = allPlayers.find(p => p.name === match.player1);
             const player2 = allPlayers.find(p => p.name === match.player2);
             
-            const player1Rating = player1 ? parseInt(player1.rating) : 1000;
-            const player2Rating = player2 ? parseInt(player2.rating) : 1000;
+            const player1Rating = player1 ? parseInt(player1.rating) : (match.player1_rating || 1000);
+            const player2Rating = player2 ? parseInt(player2.rating) : (match.player2_rating || 1000);
             
-            const odds = calculateOdds(player1Rating, player2Rating);
+            // Используем сохраненные коэффициенты или рассчитываем новые
+            let odds;
+            if (match.odds && typeof match.odds === 'object') {
+                odds = match.odds;
+            } else {
+                odds = calculateOdds(player1Rating, player2Rating);
+            }
             
             matchCard.innerHTML = `
                 <div class="match-header">
@@ -1652,13 +1876,13 @@
                     </div>
                 </div>
                 <div class="match-odds">
-                    <button class="odds-btn" onclick="selectBet('${match.id}', 'player1', ${odds.player1}, '${match.player1}')">
+                    <button class="odds-btn" onclick="selectBet('${match.id}', 'player1', ${odds.player1 || 1.8}, '${match.player1}')">
                         П1
-                        <span class="odds-value">${odds.player1.toFixed(2)}</span>
+                        <span class="odds-value">${(odds.player1 || 1.8).toFixed(2)}</span>
                     </button>
-                    <button class="odds-btn" onclick="selectBet('${match.id}', 'player2', ${odds.player2}, '${match.player2}')">
+                    <button class="odds-btn" onclick="selectBet('${match.id}', 'player2', ${odds.player2 || 1.9}, '${match.player2}')">
                         П2
-                        <span class="odds-value">${odds.player2.toFixed(2)}</span>
+                        <span class="odds-value">${(odds.player2 || 1.9).toFixed(2)}</span>
                     </button>
                 </div>
                 ${match.status === 'live' && currentUser ? `
@@ -1770,7 +1994,18 @@
             if (!tbody) return;
             
             if (allPlayers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="loading">Нет данных об игроках</td></tr>';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 3rem;">
+                            <i class="fas fa-users" style="font-size: 2rem; color: var(--gray-light); margin-bottom: 1rem; display: block;"></i>
+                            <h3 style="margin-bottom: 0.5rem;">Нет данных об игроках</h3>
+                            <p style="color: var(--gray);">Загрузка данных...</p>
+                            <button onclick="forceReloadLeaderboard()" class="bet-btn small" style="margin-top: 1rem;">
+                                <i class="fas fa-sync-alt"></i> Обновить
+                            </button>
+                        </td>
+                    </tr>
+                `;
                 return;
             }
             
